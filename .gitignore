@@ -1,0 +1,15 @@
+# files
+*.pyc
+*.json
+*.log
+*.sh
+*.*.pyc
+__pycache__/*
+*/__pycache__
+*/__pycache__/*
+*.ipynb
+
+# directorys
+.vscode
+data
+exps
