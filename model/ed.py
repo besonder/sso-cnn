@@ -58,7 +58,6 @@ class CayleyConvED(StridedConv, nn.Conv2d):
             optimizer.step()
 
         H = shift_matrix*torch.fft.rfft2(conv.weight, (n, n)).reshape(cout, xcin, n * (n//2+1)).permute(2, 0, 1).conj()
-        H = torch.rand_like(H)
         self.H = H.to(self.weight.device).detach()
 
 

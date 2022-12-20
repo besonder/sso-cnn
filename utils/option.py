@@ -107,6 +107,7 @@ class Config():
         self.logger = Logger(os.path.join(log_dir, "log.txt"))
         self.logger.log_time()
         self.logger(f"[NAME] {self.exp_name}")
+        self.log_dir = log_dir
 
 def get_option() -> Config:
     option, unknown_args = parser.parse_known_args()

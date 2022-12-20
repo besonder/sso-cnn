@@ -1,10 +1,12 @@
-import sys
-import torch.nn as nn
-import torch.optim as optim
+import os, sys
 import numpy as np
 import time
 import warnings
 warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+import torch
+import torch.nn as nn
+import torch.optim as optim
 
 from model.backbone import KWLarge, ResNet9, WideResNet
 from model.cayley import Normalize, CayleyConv, CayleyLinear
@@ -12,11 +14,13 @@ from model.ed import CayleyConvED, CayleyConvED2
 from dataset.load_data import train_batches, test_batches, mu, std
 from utils.evaluate import accuracy, rob_acc, empirical_local_lipschitzity, cert_stats, margin_loss
 from utils.option import get_option
+from utils.utils import do_seed
 
 if __name__ == '__main__':
     args = get_option()
     logger = args.logger
     logger(' '.join(sys.argv))
+    do_seed(args.seed)
     
     eps = args.eps / 255.0
     alpha = eps / 4.0
@@ -46,7 +50,7 @@ if __name__ == '__main__':
     # loss: multi-margin loss
     criterion = lambda yhat, y: margin_loss(yhat, y, 0.5, 1.0, 1.0)
 
-    for epoch in range(1, epochs+1):
+    for epoch in range(epochs):
         start = time.time()
         train_loss, acc, n = 0, 0, 0
         for i, batch in enumerate(train_batches):
@@ -76,7 +80,7 @@ if __name__ == '__main__':
             l_emp = empirical_local_lipschitzity(model, test_batches, early_stop=True).item()
             logger(f"[{args.backbone}] --- Empirical Lipschitzity: {l_emp}")
 
-        logger(f"[{args.backbone}] Epoch: {epoch} | Train Acc: {acc/n:.4f}, Test Acc: {accuracy(model, test_batches):.4f}, Time: {time.time() - start:.1f}, lr: {lr:.4f}")
+        logger(f"[{args.backbone}] Epoch: {epoch+1} | Train Acc: {acc/n:.4f}, Test Acc: {accuracy(model, test_batches):.4f}, Time: {time.time() - start:.1f}, lr: {lr:.4f}")
 
     if not args.stddev:
         vals = cert_stats(model, test_batches, eps * 2**0.5, full=True)
@@ -85,4 +89,9 @@ if __name__ == '__main__':
     val_rob_acc = rob_acc(test_batches, model, eps, alpha, opt, False, 10, 1, linf_proj=False, l2_grad_update=True)[0]
     logger(f"[{args.backbone}] (EMPIRICAL) Robust accuracy (eps: {eps:.4f}): {val_rob_acc}")
     logger.log_time()
-                
+
+    torch.save({
+        'args': args,
+        'epoch': epoch+1,
+        'state_dict': model.state_dict()
+    }, os.path.join(args.log_dir, "model.pth"))
