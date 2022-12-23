@@ -6,7 +6,6 @@ import torchvision
 from .core import build_graph, cat, to_numpy
 
 torch.backends.cudnn.benchmark = True
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 @cat.register(torch.Tensor)
 def _(*xs):
@@ -64,16 +63,17 @@ class Batches():
         self.dataloader = torch.utils.data.DataLoader(
             dataset, batch_size=batch_size, num_workers=num_workers, pin_memory=True, shuffle=shuffle, drop_last=drop_last
         )
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
     def __iter__(self):
         if self.set_random_choices:
             self.dataset.set_random_choices() 
         if self.return_perturbation: 
-            return ({'input': x.to(device).float(), 'target': y.to(device).long(),
-                     'delta': delta.to(device).float(), 'index' : idx}
+            return ({'input': x.to(self.device).float(), 'target': y.to(self.device).long(),
+                     'delta': delta.to(self.device).float(), 'index' : idx}
                     for (x,y,delta,idx) in self.dataloader)
         else: 
-            return ({'input': x.to(device).float(), 'target': y.to(device).long()} for (x,y) in self.dataloader)
+            return ({'input': x.to(self.device).float(), 'target': y.to(self.device).long()} for (x,y) in self.dataloader)
 
     
     def __len__(self): 

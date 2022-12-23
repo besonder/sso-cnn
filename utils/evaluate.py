@@ -14,6 +14,7 @@ def accuracy(model, batches):
 
 # Certifiably robust accuracies from Lipschitz-Margin Training
 # https://arxiv.org/abs/1802.04034
+@torch.no_grad()
 def cert_stats(model, batches, cert, full=False):
     cert_right = 0.
     cert_wrong = 0.
@@ -42,18 +43,6 @@ def cert_stats(model, batches, cert, full=False):
 
     return cert_right, cert_wrong, insc_right, insc_wrong
 
-############################################################
-# From: https://github.com/ColinQiyangLi/LConvNet
-############################################################
-
-def get_margin_factor(p):
-    if p == "inf":
-        return 2.0
-    return 2.0 ** ((p - 1) / p)
-
-def margin_loss(y_pred, y, eps, p, l_constant, order=1):
-    margin = eps * get_margin_factor(p) * l_constant
-    return F.multi_margin_loss(y_pred, y, margin=margin, p=order)
 
 ####################################################################
 # From: https://github.com/tml-epfl/understanding-fast-adv-training

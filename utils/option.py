@@ -8,12 +8,10 @@ from .utils import Logger
 parser = argparse.ArgumentParser()
 
 parser.add_argument('-e', '--exp_name',   default='',                 help='experiment name')
-parser.add_argument('--batch_size',       default=32,        type=int,   help='mini-batch size')
-parser.add_argument('--lr',               default=0.0001,    type=float, help='initial learning rate')
-parser.add_argument('--lr_decay_rate',    default=0.1,       type=float, help='lr decay rate')
-parser.add_argument('--lr_decay_period',  default=10,        type=int,   help='lr decay period')
+parser.add_argument('--gpu',              default='0',                help='gpu id')
+parser.add_argument('--batch_size',       default=256,        type=int,   help='mini-batch size')
 parser.add_argument('--opt',              default="Adam",    type=str,   help='adam or sgd')
-parser.add_argument('--weight_decay',     default=0.0005,    type=float, help='optimizer weight decay')
+parser.add_argument('--weight_decay',     default=0.0,    type=float, help='optimizer weight decay')
 parser.add_argument('--epochs',            default=100,       type=int,   help='epochs')
 
 parser.add_argument('--log_step',         default=50,        type=int,   help='step for logging in iteration')
@@ -36,10 +34,8 @@ parser.add_argument('--stddev',           action='store_true')
 class Config():
     def __init__(self, opt) -> None:
         self.exp_name: str = opt.exp_name
+        self.gpu_id: str = opt.gpu
         self.batch_size: int = opt.batch_size
-        self.lr: float = opt.lr
-        self.lr_decay_rate: float = opt.lr_decay_rate
-        self.lr_decay_period: float = opt.lr_decay_period
         self.opt: str = opt.opt
         self.weight_decay: float = opt.weight_decay
         self.epochs: int = opt.epochs
@@ -66,8 +62,8 @@ class Config():
             'conv': '',
             'linear': '',
             'epochs': 'Ep',
-            'batch_size': 'B',
-            'lr': 'LR',
+            # 'batch_size': 'B',
+            'lr_max': 'LR',
             'seed': 'SEED',
         }
 

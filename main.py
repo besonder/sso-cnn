@@ -2,22 +2,23 @@ import os, sys
 import numpy as np
 import time
 import warnings
-warnings.filterwarnings("ignore", category=DeprecationWarning)
+warnings.filterwarnings(action='ignore')
 
 import torch
-import torch.nn as nn
 import torch.optim as optim
 
-from model.backbone import KWLarge, ResNet9, WideResNet
-from model.cayley import Normalize, CayleyConv, CayleyLinear
-from model.ed import CayleyConvED, CayleyConvED2
-from dataset.load_data import train_batches, test_batches, mu, std
-from utils.evaluate import accuracy, rob_acc, empirical_local_lipschitzity, cert_stats, margin_loss
+from model import get_model, margin_loss
+from dataset.load_data import get_dataset
+from utils.evaluate import accuracy, rob_acc, empirical_local_lipschitzity, cert_stats
 from utils.option import get_option
 from utils.utils import do_seed
 
+args = get_option()
+
 if __name__ == '__main__':
-    args = get_option()
+    start_main = time.time()
+    os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_id)
+
     logger = args.logger
     logger(' '.join(sys.argv))
     do_seed(args.seed)
@@ -25,32 +26,21 @@ if __name__ == '__main__':
     eps = args.eps / 255.0
     alpha = eps / 4.0
 
-    _model = eval(args.backbone)
-    conv = eval(args.conv)
-    linear = eval(args.linear)
-
-    model = nn.Sequential(
-        Normalize(mu, std if args.stddev else 1.0),
-        _model(conv=conv, linear=linear)
-    ).cuda()
-
-    model_name = args.backbone
-    epochs = args.epochs
-    lr_max = args.lr_max
-
-    # for SVCM projections
-    proj_nits = 100
+    model = get_model(args)
 
     # lr schedule: superconvergence
-    lr_schedule = lambda t: np.interp([t], [0, epochs*2//5, epochs*4//5, epochs], [0, lr_max, lr_max/20.0, 0])[0]
+    lr_schedule = lambda t: np.interp([t], [0, args.epochs*2//5, args.epochs*4//5, args.epochs], [0, args.lr_max, args.lr_max/20.0, 0])[0]
 
     # optimizer: Adam
-    opt = optim.Adam(model.parameters(), lr=lr_max, weight_decay=0)
+    opt = optim.Adam(model.parameters(), lr=args.lr_max, weight_decay=0)
 
     # loss: multi-margin loss
     criterion = lambda yhat, y: margin_loss(yhat, y, 0.5, 1.0, 1.0)
 
-    for epoch in range(epochs):
+    # load dataset
+    train_batches, test_batches = get_dataset(args)
+
+    for epoch in range(args.epochs):
         start = time.time()
         train_loss, acc, n = 0, 0, 0
         for i, batch in enumerate(train_batches):
@@ -70,12 +60,6 @@ if __name__ == '__main__':
             acc += (output.max(1)[1] == y).sum().item()
             n += y.size(0)
             
-            # for SVCM projections
-            if i % proj_nits == 0 or i == len(train_batches) - 1:
-                for m in model.modules():
-                    if hasattr(m, '_project'):
-                        m._project()
-        
         if (epoch + 1) % 10 == 0:
             l_emp = empirical_local_lipschitzity(model, test_batches, early_stop=True).item()
             logger(f"[{args.backbone}] --- Empirical Lipschitzity: {l_emp}")
@@ -95,3 +79,5 @@ if __name__ == '__main__':
         'epoch': epoch+1,
         'state_dict': model.state_dict()
     }, os.path.join(args.log_dir, "model.pth"))
+
+    logger(f"Elapsed Time: {(time.time() - start_main)/60:.1f} Min")
