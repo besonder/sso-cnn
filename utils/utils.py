@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from typing import Dict, Optional
 import random
 import numpy as np
 import time
@@ -32,9 +33,15 @@ class Logger():
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
-    def __init__(self, name='', fmt=':f'):
+    def __init__(self, name='', fmt=':f', mode='avg'):
+        """
+        Args:
+            fmt: print format. .4f
+            mode: 'avg', 'sum', 'val'
+        """
         self.name = name
         self.fmt = fmt
+        self.mode = mode
         self.reset()
 
     def reset(self):
@@ -50,26 +57,61 @@ class AverageMeter(object):
         self.avg = self.sum / self.count
 
     def __str__(self):
-        fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
+        if self.mode == 'avg':
+            fmtstr = '{name} {val' + self.fmt + '} ({avg' + self.fmt + '})'
+        elif self.mode == 'sum':
+            fmtstr = '{name} {val' + self.fmt + '} ({sum' + self.fmt + '})'
+        elif self.mode == 'val':
+            fmtstr = '{name} {val' + self.fmt + '}'
+        elif self.mode == 'avg_only':
+            fmtstr = '{name} {avg' + self.fmt + '}'
+        else:
+            raise NotImplemented(f"{self.mode} Mode not implemented")
         return fmtstr.format(**self.__dict__)
 
 class ProgressMeter(object):
-    def __init__(self, num_batches, meters, prefix=""):
+    def __init__(self, num_batches, meters: Optional[Dict[str, AverageMeter]] = None, prefix=""):
         self.batch_fmtstr = self._get_batch_fmtstr(num_batches)
-        self.meters = meters
+        self.meters: Dict[str, AverageMeter] = {} if meters is None else meters
         self.prefix = prefix
         self.num_batchs = num_batches
 
-    def display(self, batch):
-        entries = [self.prefix + self.batch_fmtstr.format(batch)]
-        entries += [str(meter) for meter in self.meters]
-        print('\t'.join(entries))
-        return '\t'.join(entries)
-
+    def __getitem__(self, key) -> AverageMeter:
+        return self.meters[key]
+    
     def _get_batch_fmtstr(self, num_batches):
         num_digits = len(str(num_batches // 1))
         fmt = '{:' + str(num_digits) + 'd}'
         return '[' + fmt + '/' + fmt.format(num_batches) + ']'
+
+    def display(self, batch, isPrint=True):
+        entries = [self.prefix + self.batch_fmtstr.format(batch)]
+        entries += [str(meter) for meter in self.meters.values()]
+        if isPrint:
+            print('\t'.join(entries))
+        return '\t'.join(entries)
+    
+    def add(self, name='', fmt=':f', mode='avg'):
+        self.meters.update({name: AverageMeter(name, fmt, mode)})
+
+    def update(self, name: str, val: int, n: int = 1):
+        self.meters[name].update(val, n)
+
+    def reset(self):
+        for key in self.meters.keys():
+            self.meters[key].reset()
+
+    def keys(self):
+        return self.meters.keys()
+
+def get_log_meters(nums, prefix='EPOCH'):
+    meters = {
+        'loss' : AverageMeter('Loss', ':.4f', mode='avg_only'),
+        'train_acc' : AverageMeter('Train Acc', ':.4f', mode='avg_only')
+    }
+    progress = ProgressMeter(nums, meters, prefix=prefix)
+
+    return progress
 
 def current_time(easy=False):
     """

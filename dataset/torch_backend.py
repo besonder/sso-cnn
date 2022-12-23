@@ -1,11 +1,12 @@
 # Based on https://github.com/davidcpage/cifar10-fast
+from typing import Dict
 import numpy as np
 import torch
 from torch import nn
 import torchvision
 from .core import build_graph, cat, to_numpy
 
-torch.backends.cudnn.benchmark = True
+# torch.backends.cudnn.benchmark = True
 
 @cat.register(torch.Tensor)
 def _(*xs):
@@ -65,7 +66,7 @@ class Batches():
         )
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
-    def __iter__(self):
+    def __iter__(self) -> Dict[str, torch.Tensor]:
         if self.set_random_choices:
             self.dataset.set_random_choices() 
         if self.return_perturbation: 

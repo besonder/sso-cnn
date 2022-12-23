@@ -12,7 +12,7 @@ parser.add_argument('--gpu',              default='0',                help='gpu 
 parser.add_argument('--batch_size',       default=256,        type=int,   help='mini-batch size')
 parser.add_argument('--opt',              default="Adam",    type=str,   help='adam or sgd')
 parser.add_argument('--weight_decay',     default=0.0,    type=float, help='optimizer weight decay')
-parser.add_argument('--epochs',            default=100,       type=int,   help='epochs')
+parser.add_argument('--epochs',           default=100,       type=int,   help='epochs')
 
 parser.add_argument('--log_step',         default=50,        type=int,   help='step for logging in iteration')
 parser.add_argument('--save_step',        default=1,         type=int,   help='step for saving in epoch')
@@ -36,7 +36,7 @@ class Config():
         self.exp_name: str = opt.exp_name
         self.gpu_id: str = opt.gpu
         self.batch_size: int = opt.batch_size
-        self.opt: str = opt.opt
+        self.opt: str = opt.opt.lower()
         self.weight_decay: float = opt.weight_decay
         self.epochs: int = opt.epochs
 
@@ -62,8 +62,8 @@ class Config():
             'conv': '',
             'linear': '',
             'epochs': 'Ep',
-            # 'batch_size': 'B',
-            'lr_max': 'LR',
+            'lr_max': 'LR_MAX',
+            'batch_size': 'B',
             'seed': 'SEED',
         }
 
