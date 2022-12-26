@@ -61,8 +61,9 @@ class Config():
             'backbone': '',
             'conv': '',
             'linear': '',
+            'stddev': 'STD',
+            'lr_max': 'LRMAX',
             'epochs': 'Ep',
-            'lr_max': 'LR_MAX',
             'batch_size': 'B',
             'seed': 'SEED',
         }
@@ -86,7 +87,7 @@ class Config():
             else:
                 isdelete = input("delete exist exp dir (y/n): ")
             if isdelete == "y":
-                shutil.rmtree(log_dir)
+                shutil.rmtree(log_dir, ignore_errors=True)
             elif isdelete == "n":
                 raise FileExistsError
             else:

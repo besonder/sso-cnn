@@ -14,10 +14,9 @@ from utils.evaluate import accuracy, rob_acc, empirical_local_lipschitzity, cert
 from utils.option import get_option
 from utils.utils import do_seed, cal_num_parameters, get_log_meters
 
-args = get_option()
-
 if __name__ == '__main__':
     start_main = time.time()
+    args = get_option()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_id)
 
     logger = args.logger
@@ -77,7 +76,7 @@ if __name__ == '__main__':
         # test
         test_acc = accuracy(model, test_batches)
         # log
-        msg = f"\tTest Acc: {test_acc:.4f}\tlr: {lr:.4f}\tTime: {time.time() - start:.1f}"
+        msg = f"\tTest Acc {test_acc:.4f}\tlr {lr:.4f}\tTime {time.time() - start:.1f}"
         logger(progress.display(epoch+1, isPrint=False) + msg)
         # write on Tensorboard
         writer.add_scalar("train/loss", progress['loss'].avg, global_step=epoch+1)
@@ -97,7 +96,7 @@ if __name__ == '__main__':
         )
     
     val_rob_acc = rob_acc(test_batches, model, eps, alpha, opt, False, 10, 1, linf_proj=False, l2_grad_update=True)[0]
-    logger(f"[{args.backbone}] (EMPIRICAL) Robust accuracy (eps: {eps:.4f}): {val_rob_acc}")
+    logger(f"[{args.backbone}] (EMPIRICAL) Robust accuracy (eps: {eps:.4f}): {val_rob_acc:.4f}")
     logger.log_time()
 
     torch.save({

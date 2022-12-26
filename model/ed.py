@@ -21,7 +21,7 @@ class CayleyConvED(StridedConv, nn.Conv2d):
         self.bias = nn.Parameter(torch.zeros(args[1]))
         self.args = args
         self.register_parameter('alpha', None)
-        self.H = None
+        self.register_buffer('H', None)
 
 
     def genH(self, n, k, cout, xcin):
@@ -58,7 +58,7 @@ class CayleyConvED(StridedConv, nn.Conv2d):
             optimizer.step()
 
         H = shift_matrix*torch.fft.rfft2(conv.weight, (n, n)).reshape(cout, xcin, n * (n//2+1)).permute(2, 0, 1).conj()
-        self.H = H.to(self.weight.device).detach()
+        self.register_buffer("H", H.to(self.weight.device).detach())
 
 
     def fft_shift_matrix(self, n, s):
