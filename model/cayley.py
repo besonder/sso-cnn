@@ -112,28 +112,3 @@ class PlainConv(nn.Conv2d):
             return super().forward(F.pad(x, (0,1,0,1), mode="circular"))
         return super().forward(F.pad(x, (1,1,1,1)))
     
-class GroupSort(nn.Module):
-    def forward(self, x):
-        a, b = x.split(x.size(1) // 2, 1)
-        a, b = torch.max(a, b), torch.min(a, b)
-        return torch.cat([a, b], dim=1)
-    
-class ConvexCombo(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.alpha = nn.Parameter(torch.Tensor([0.5])) # maybe should be 0.0
-        
-    def forward(self, x, y):
-        s = torch.sigmoid(self.alpha)
-        return s * x + (1 - s) * y
-    
-class Normalize(nn.Module):
-    def __init__(self, mu, std):
-        super(Normalize, self).__init__()
-        self.mu = mu
-        self.std = std
-        
-    def forward(self, x):
-        if self.std is not None:
-            return (x - self.mu) / self.std
-        return (x - self.mu)

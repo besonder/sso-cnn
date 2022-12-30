@@ -2,24 +2,9 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from .cayley import CayleyConv, CayleyLinear, GroupSort, ConvexCombo
+from ..cayley import CayleyConv, CayleyLinear
+from ..utils import GroupSort, ConvexCombo
 
-class KWLarge(nn.Module):
-    def __init__(self, conv=CayleyConv, linear=CayleyLinear, w=1):
-        super().__init__()
-        self.model = nn.Sequential(
-            conv(3, 32 * w, 3), GroupSort(),
-            conv(32 * w, 32 * w, 3, stride=2), GroupSort(),
-            conv(32 * w, 64 * w, 3), GroupSort(),
-            conv(64 * w, 64 * w, 3, stride=2), GroupSort(),
-            nn.Flatten(),
-            linear(4096 * w, 512 * w), GroupSort(),
-            linear(512 * w, 512), GroupSort(),
-            linear(512, 10)
-        )
-    def forward(self, x):
-        return self.model(x)
-    
 class ResNet9(nn.Module):
     def __init__(self, conv=CayleyConv, linear=CayleyLinear):
         super().__init__()
@@ -146,4 +131,3 @@ class WideResNet(nn.Module):
         out = out.view(-1, self.nChannels*4)
         out = self.relu(self.fc1(out))
         return self.fc2(out)
-    

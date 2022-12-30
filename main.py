@@ -89,11 +89,11 @@ if __name__ == '__main__':
             logger(f"[{args.backbone}] EPOCH {epoch+1} : --- Empirical Lipschitzity: {l_emp}")
             writer.add_scalar("Lipschitz", l_emp, global_step=epoch+1)
 
-    if not args.stddev:
-        cert_right, cert_wrong, insc_right, insc_wrong = cert_stats(model, test_batches, eps * 2**0.5, full=True)
-        logger(f"[{args.backbone}] (PROVABLE) Certifiably Robust (eps: {eps:.4f}): {cert_right:.4f}, " + 
-               f"Cert. Wrong: {cert_wrong:.4f}, Insc. Right: {insc_right:.4f}, Insc. Wrong: {insc_wrong:.4f}"
-        )
+    # if not args.stddev:
+    cert_right, cert_wrong, insc_right, insc_wrong = cert_stats(model, test_batches, eps * 2**0.5, full=True)
+    logger(f"[{args.backbone}] (PROVABLE) Certifiably Robust (eps: {eps:.4f}): {cert_right:.4f}, " + 
+            f"Cert. Wrong: {cert_wrong:.4f}, Insc. Right: {insc_right:.4f}, Insc. Wrong: {insc_wrong:.4f}"
+    )
     
     val_rob_acc = rob_acc(test_batches, model, eps, alpha, opt, False, 10, 1, linf_proj=False, l2_grad_update=True)[0]
     logger(f"[{args.backbone}] (EMPIRICAL) Robust accuracy (eps: {eps:.4f}): {val_rob_acc:.4f}")

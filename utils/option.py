@@ -22,11 +22,11 @@ parser.add_argument('--save_dir',         default='./exps',              help='s
 parser.add_argument('--seed',             default=777,       type=int,   help='random seed')
 parser.add_argument('--num_workers',      default=4,         type=int,   help='number of workers in data loader')
 
-parser.add_argument('--backbone',         default='KWLarge', choices=['KWLarge', 'ResNet9', 'WideResNet'])
+parser.add_argument('--backbone',         default='KWLarge', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
 parser.add_argument('--conv',             default='CayleyConvED', 
-                    choices=['CayleyConv', 'BCOP', 'RKO', 'SVCM', 'OSSN', 'PlainConv', 'CayleyConvED', 'CayleyConvED2'])
+                    choices=['CayleyConv', 'BCOP', 'RKO', 'SVCM', 'OSSN', 'PlainConv', 'CayleyConvED', 'CayleyConvED2', 'ECO'])
 parser.add_argument('--linear',           default='CayleyLinear', 
-                    choices=['CayleyLinear', 'BjorckLinear', 'nn.Linear'])
+                    choices=['CayleyLinear', 'BjorckLinear', 'Linear'])
 parser.add_argument('--lr_max',           default=0.01,      type=float)
 parser.add_argument('--eps',              default=36.0,      type=float)
 parser.add_argument('--stddev',           action='store_true')

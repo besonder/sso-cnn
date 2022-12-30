@@ -1,9 +1,11 @@
 from torch import nn, tensor
 
-from .backbone import KWLarge, ResNet9, WideResNet
-from .cayley import Normalize, CayleyConv, CayleyLinear
+from .backbones import KWLarge, ResNet9, WideResNet, LipNet_n
+from .bcop import BCOPConv
+from .cayley import CayleyConv, CayleyLinear
+from .eco import ECOConv
 from .ed import CayleyConvED, CayleyConvED2
-from .utils import margin_loss
+from .utils import margin_loss, Normalize
 from utils.option import Config
 
 def get_model(args: Config) -> nn.Sequential:
@@ -13,9 +15,15 @@ def get_model(args: Config) -> nn.Sequential:
         conv = CayleyConvED
     elif args.conv == "CayleyConvED2":
         conv = CayleyConvED2
+    elif args.conv == "ECO":
+        conv = ECOConv
+    elif args.conv == "BCOP":
+        conv = BCOPConv
 
     if args.linear == "CayleyLinear":
         linear = CayleyLinear
+    elif args.linear == "Linear":
+        linear = nn.Linear
 
     if args.backbone == "KWLarge":
         backbone = KWLarge(conv=conv, linear=linear)
@@ -23,6 +31,9 @@ def get_model(args: Config) -> nn.Sequential:
         backbone = ResNet9(conv=conv, linear=linear)
     elif args.backbone == "WideResNet":
         backbone = WideResNet(conv=conv, linear=linear)
+    elif args.backbone == "LipConvNet":
+        if conv in [ECOConv]: linear = conv
+        backbone = LipNet_n(conv=conv, linear=linear, num_blocks=4, num_classes=10)
 
     mu = tensor((0.4914, 0.4822, 0.4465)).view(3,1,1).cuda()
     std = tensor((0.2471, 0.2435, 0.2616)).view(3,1,1).cuda()
