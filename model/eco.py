@@ -42,7 +42,7 @@ def fantastic_one_batch(conv_filter, num_iters=50, return_vectors=False):
         return sigma1.abs()
 
 class ECOConv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=None, 
+    def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, padding=None, 
                  bias=True, train_terms=5, eval_terms=10, init_iters=50, update_iters=1, 
                  update_freq=200, correction=0.7):
         super(ECOConv, self).__init__()
@@ -125,7 +125,8 @@ class ECOConv(nn.Module):
         return sigmas
 
     def forward(self, x):
-
+        if len(x.shape) == 2:
+            x = x[..., None, None]
         conv_filters = []
         sigmas = self.update_sigma()
         random_conv_filter = self.random_conv_filter.reshape(self.max_channels,self.max_channels,1,1,self.num)#[:,:,i]

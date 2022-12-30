@@ -17,5 +17,7 @@ class KWLarge(nn.Module):
             linear(512, 10)
         )
     def forward(self, x):
-        return self.model(x)
+        out = self.model(x)
+        out = out.view(out.shape[0], -1)
+        return out
       

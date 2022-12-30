@@ -44,7 +44,8 @@ class ResNet9(nn.Module):
         res = self.res2(x)
         x = self.combo2(x, res)
         x = self.linear1(x)
-        return x
+        out = x.view(x.shape[0], -1)
+        return out
 
 class PooledConv(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False, conv=CayleyConv):
@@ -130,4 +131,6 @@ class WideResNet(nn.Module):
         out = 4 * F.avg_pool2d(out, 4)
         out = out.view(-1, self.nChannels*4)
         out = self.relu(self.fc1(out))
-        return self.fc2(out)
+        out = self.fc2(out)
+        out = out.view(out.shape[0], -1)
+        return out

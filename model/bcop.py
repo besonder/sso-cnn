@@ -10,7 +10,7 @@ import numpy as np
 from einops import rearrange
 
 class BCOPConv(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=None, 
+    def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, padding=None, 
                  bias=True, bjorck_beta=0.5, bjorck_iters=30, bjorck_order=1, 
                  power_iteration_scaling=True):
         super(BCOPConv, self).__init__()
@@ -75,6 +75,8 @@ class BCOPConv(nn.Module):
             self.bias.data.uniform_(-stdv, stdv)
 
     def forward(self, x):
+        if len(x.shape) == 2:
+            x = x[..., None, None]
         self._input_shape = x.shape[2:]
         
         # orthogonalize all the matrices using Bjorck

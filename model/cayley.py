@@ -78,7 +78,7 @@ class CayleyConv(StridedConv, nn.Conv2d):
         if self.alpha is None:
             self.alpha = nn.Parameter(torch.tensor(wfft.norm().item(), requires_grad=True).to(x.device))
         yfft = (cayley(self.alpha * wfft / wfft.norm()) @ xfft).reshape(n, n // 2 + 1, cout, batches)
-        y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1))
+        y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1), x.shape[2:])
         if self.bias is not None:
             y += self.bias[:, None, None]
         return y
@@ -100,6 +100,7 @@ class CayleyLinear(nn.Linear):
         self.Q = None
             
     def forward(self, X):
+        X = X.view(X.shape[0], -1)
         if self.training or self.Q is None:
             self.Q = cayley(self.alpha * self.weight / self.weight.norm())
         return F.linear(X, self.Q if self.training else self.Q.detach(), self.bias)

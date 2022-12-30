@@ -8,12 +8,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from ..bcop import BCOPConv
-# from skew_symmetric_conv import skew_conv
+from ..soc import SOCConv
 from ..eco import ECOConv
 
 conv_mapping = {
     'standard': nn.Conv2d,
-    # 'skew': skew_conv,
+    'skew': SOCConv,
     'bcop': BCOPConv,
     'eco': ECOConv,
 }
@@ -56,10 +56,7 @@ class LipNet(nn.Module):
         
         flat_size = input_spatial_shape // 32
         flat_features = flat_size * flat_size * self.in_planes
-        if linear in [ECOConv]:
-            self.final_conv = linear(flat_features, num_classes, kernel_size=1, stride=1)
-        else:
-            self.final_conv = linear(flat_features, num_classes)
+        self.final_conv = linear(flat_features, num_classes)
 
 
     def _make_layer(self, block, planes, num_blocks, conv_module, stride, kernel_size):

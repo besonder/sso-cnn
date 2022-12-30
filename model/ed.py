@@ -1,25 +1,25 @@
 import numpy as np
 
 import torch
-from torch import nn
+from torch import Tensor, nn
 from .cayley import StridedConv, cayley
 
 class CayleyConvED(StridedConv, nn.Conv2d):
-    def __init__(self, *args, **kwargs):
-        # super().__init__(*args, **kwargs)
+    def __init__(self, in_channels, out_channels, kernel_size=3, **kwargs):
         if 'stride' in kwargs and kwargs['stride'] == 2:
             self.stride = 2
-            self.xcin = 4*args[0]
+            self.xcin = 4*in_channels
             self.padding = 1
-            self.k = max(1, args[2]//2)
+            self.k = max(1, kernel_size//2)
         else:
             self.stride = 1
-            self.xcin = args[0]
+            self.xcin = in_channels
             self.padding = 0
-            self.k =args[2]
-        super().__init__(args[0], self.xcin, self.k, padding=self.padding, stride=self.stride)
-        self.bias = nn.Parameter(torch.zeros(args[1]))
-        self.args = args
+            self.k = kernel_size
+        super().__init__(in_channels, self.xcin, self.k, padding=self.padding, stride=self.stride)
+        self.bias = nn.Parameter(torch.zeros(out_channels))
+        self.out_channels = out_channels
+        # self.args = args
         self.register_parameter('alpha', None)
         self.register_buffer('H', None)
 
@@ -67,8 +67,8 @@ class CayleyConvED(StridedConv, nn.Conv2d):
         return torch.exp(1j * 2 * np.pi * s * shift / n)
 
     
-    def forward(self, x):
-        cout = self.args[1]
+    def forward(self, x: Tensor):
+        cout = self.out_channels
 
         batches, _, n, _ = x.shape
         if not hasattr(self, 'shift_matrix'):
@@ -88,31 +88,15 @@ class CayleyConvED(StridedConv, nn.Conv2d):
 
         yfft = (cwxfft).reshape(n, n // 2 + 1, cout, batches)
 
-        y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1))
+        y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1), x.shape[2:])
         if self.bias is not None:
             y += self.bias[:, None, None]
         return y
 
 
-class CayleyConvED2(StridedConv, nn.Conv2d):
-    def __init__(self, *args, **kwargs):
-        # super().__init__(*args, **kwargs)
-        if 'stride' in kwargs and kwargs['stride'] == 2:
-            self.stride = 2
-            self.xcin = 4*args[0]
-            self.padding = 1
-            self.k = max(1, args[2]//2)
-        else:
-            self.stride = 1
-            self.xcin = args[0]
-            self.padding = 0
-            self.k =args[2]
-        super().__init__(args[0], self.xcin, self.k, padding=self.padding, stride=self.stride)
-        self.bias = nn.Parameter(torch.zeros(args[1]))
-        self.args = args
-        self.register_parameter('alpha', None)
-        self.H = None
-
+class CayleyConvED2(CayleyConvED):
+    def __init__(self, in_channels, out_channels, kernel_size=3, **kwargs):
+        super().__init__(in_channels, out_channels, kernel_size, **kwargs)
 
     def genH(self, cout, xcin):
         loss = torch.nn.MSELoss(reduction='mean')
@@ -141,7 +125,7 @@ class CayleyConvED2(StridedConv, nn.Conv2d):
             L.backward()
             A = H - lr*H.grad
         H = A[:, :, None, None]
-        self.H = H.detach()
+        self.register_buffer("H", H.to(self.weight.device).detach())
 
 
     def fft_shift_matrix(self, n, s):
@@ -150,8 +134,8 @@ class CayleyConvED2(StridedConv, nn.Conv2d):
         return torch.exp(1j * 2 * np.pi * s * shift / n)
 
     
-    def forward(self, x):
-        cout = self.args[1]
+    def forward(self, x: Tensor):
+        cout = self.out_channels
 
         batches, _, n, _ = x.shape
         if not hasattr(self, 'shift_matrix'):
@@ -166,7 +150,7 @@ class CayleyConvED2(StridedConv, nn.Conv2d):
 
         wxfft = cayley(self.alpha * wfft / wfft.norm(), ED=True) @ xfft
         yfft = wxfft.reshape(n, n // 2 + 1, self.xcin, batches)
-        y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1))
+        y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1), x.shape[2:])
         if self.H == None:
             self.genH(cout, self.xcin)
         y = torch.nn.functional.conv2d(y, self.H.to(x.device))

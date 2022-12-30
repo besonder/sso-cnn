@@ -24,7 +24,7 @@ parser.add_argument('--num_workers',      default=4,         type=int,   help='n
 
 parser.add_argument('--backbone',         default='KWLarge', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
 parser.add_argument('--conv',             default='CayleyConvED', 
-                    choices=['CayleyConv', 'BCOP', 'RKO', 'SVCM', 'OSSN', 'PlainConv', 'CayleyConvED', 'CayleyConvED2', 'ECO'])
+                    choices=['CayleyConv', 'BCOP', 'RKO', 'SVCM', 'OSSN', 'PlainConv', 'CayleyConvED', 'CayleyConvED2', 'ECO', 'SOC'])
 parser.add_argument('--linear',           default='CayleyLinear', 
                     choices=['CayleyLinear', 'BjorckLinear', 'Linear'])
 parser.add_argument('--lr_max',           default=0.01,      type=float)
@@ -56,6 +56,9 @@ class Config():
         self.eps: float = opt.eps
 
         assert len(self.__dict__) == len(opt.__dict__), "Check argparse"
+
+        if self.conv in ['BCOP', 'SOC', 'ECO']:
+            self.linear = self.conv
 
         self.hyper_param = {
             'backbone': '',
