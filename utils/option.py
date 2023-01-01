@@ -7,11 +7,11 @@ from .utils import Logger
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('-e', '--exp_name',   default='',                 help='experiment name')
-parser.add_argument('--gpu',              default='0',                help='gpu id')
-parser.add_argument('--batch_size',       default=256,        type=int,   help='mini-batch size')
+parser.add_argument('-e', '--exp_name',   default='',                    help='experiment name')
+parser.add_argument('--gpu',              default='0',                   help='gpu id')
+parser.add_argument('--batch_size',       default=256,       type=int,   help='mini-batch size')
 parser.add_argument('--opt',              default="Adam",    type=str,   help='adam or sgd')
-parser.add_argument('--weight_decay',     default=0.0,    type=float, help='optimizer weight decay')
+parser.add_argument('--weight_decay',     default=0.0,       type=float, help='optimizer weight decay')
 parser.add_argument('--epochs',           default=100,       type=int,   help='epochs')
 
 parser.add_argument('--log_step',         default=50,        type=int,   help='step for logging in iteration')
@@ -22,11 +22,11 @@ parser.add_argument('--save_dir',         default='./exps',              help='s
 parser.add_argument('--seed',             default=777,       type=int,   help='random seed')
 parser.add_argument('--num_workers',      default=4,         type=int,   help='number of workers in data loader')
 
-parser.add_argument('--backbone',         default='KWLarge', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
-parser.add_argument('--conv',             default='CayleyConvED', 
-                    choices=['CayleyConv', 'BCOP', 'RKO', 'SVCM', 'OSSN', 'PlainConv', 'CayleyConvED', 'CayleyConvED2', 'ECO', 'SOC'])
-parser.add_argument('--linear',           default='CayleyLinear', 
-                    choices=['CayleyLinear', 'BjorckLinear', 'Linear'])
+parser.add_argument('--backbone',         default='ResNet9', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
+parser.add_argument('--conv',             default='SESConv2dF', 
+                    choices=['CayleyConv', 'BCOP', 'PlainConv', 'CayleyConvED', 'CayleyConvED2', 'ECO', 'SOC', 'SESConv2dF', 'SESConv2dT'])
+parser.add_argument('--linear',           default='SESLinear', 
+                    choices=['CayleyLinear', 'BjorckLinear', 'Linear', 'SESLinear'])
 parser.add_argument('--lr_max',           default=0.01,      type=float)
 parser.add_argument('--eps',              default=36.0,      type=float)
 parser.add_argument('--stddev',           action='store_true')
