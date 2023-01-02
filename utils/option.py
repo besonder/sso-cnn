@@ -24,7 +24,7 @@ parser.add_argument('--num_workers',      default=4,         type=int,   help='n
 
 parser.add_argument('--backbone',         default='ResNet9', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
 parser.add_argument('--conv',             default='SESConv2dF', 
-                    choices=['CayleyConv', 'BCOP', 'PlainConv', 'CayleyConvED', 'CayleyConvED2', 'ECO', 'SOC', 'SESConv2dF', 'SESConv2dT'])
+                    choices=['CayleyConv', 'BCOP', 'PlainConv', 'CayleyConvED', 'CayleyConvED2', 'ECO', 'SOC', 'SESConv2dF', 'SESConv2dS'])
 parser.add_argument('--linear',           default='SESLinear', 
                     choices=['CayleyLinear', 'BjorckLinear', 'Linear', 'SESLinear'])
 parser.add_argument('--lr_max',           default=0.01,      type=float)
