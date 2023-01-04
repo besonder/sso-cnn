@@ -8,6 +8,7 @@ from .soc import SOCConv
 from .eco import ECOConv
 from .ed import CayleyConvED, CayleyConvED2
 from .ses import SESConv2dF, SESConv2dS, SESLinear
+from .ses_t import SESConv2dFT, extract_SESLoss
 from .utils import margin_loss, Normalize
 from utils.option import Config
 
@@ -22,6 +23,9 @@ def get_model(args: Config) -> nn.Sequential:
         conv = SESConv2dF
     elif args.conv == "SESConv2dS":
         conv = SESConv2dS       
+    elif args.conv == "SESConv2dFT":
+        conv = SESConv2dFT
+
     elif args.conv == "ECO":
         conv = ECOConv
     elif args.conv == "BCOP":
