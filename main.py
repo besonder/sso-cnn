@@ -5,7 +5,7 @@ import warnings
 warnings.filterwarnings(action='ignore')
 
 import torch
-import torch.optim as optim
+from torch import nn, optim
 from torch.utils.tensorboard import SummaryWriter
 
 from model import get_model, margin_loss
@@ -43,13 +43,14 @@ if __name__ == '__main__':
     # optimizer: Adam
     if args.opt == "adam":
         opt = optim.Adam(model.parameters(), lr=args.lr_max, weight_decay=args.weight_decay)
-        opt1 = optim.Adam(model.parameters(), lr=args.lr_max, weight_decay=args.weight_decay)
     elif args.opt == 'sgd':
         opt = optim.SGD(model.parameters(), lr=args.lr_max, weight_decay=args.weight_decay)
 
-
     # loss: multi-margin loss
-    criterion = lambda yhat, y: margin_loss(yhat, y, 0.5, 1.0, 1.0)
+    if args.loss == 'margin':
+        criterion = lambda yhat, y: margin_loss(yhat, y, 0.5, 1.0, 1.0)
+    elif args.loss == 'ce':
+        criterion = nn.CrossEntropyLoss()
 
     # load dataset
     train_batches, test_batches = get_dataset(args)
@@ -62,6 +63,7 @@ if __name__ == '__main__':
 
     # initialize H
     if sesmode:
+        opt1 = optim.Adam(model.parameters(), lr=args.lr_max, weight_decay=args.weight_decay)
         for i in range(100):
             device = torch.device("cuda")
             x = torch.randn(10, 3, 32, 32).to(device)
@@ -113,7 +115,6 @@ if __name__ == '__main__':
             logger(f"[{args.backbone}] EPOCH {epoch+1} : --- Empirical Lipschitzity: {l_emp}")
             writer.add_scalar("Lipschitz", l_emp, global_step=epoch+1)
 
-    # if not args.stddev:
     cert_right, cert_wrong, insc_right, insc_wrong = cert_stats(model, test_batches, eps * 2**0.5, full=True)
     logger(f"[{args.backbone}] (PROVABLE) Certifiably Robust (eps: {eps:.4f}): {cert_right:.4f}, " + 
             f"Cert. Wrong: {cert_wrong:.4f}, Insc. Right: {insc_right:.4f}, Insc. Wrong: {insc_wrong:.4f}"

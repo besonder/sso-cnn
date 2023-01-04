@@ -58,7 +58,7 @@ def get_model(args: Config) -> nn.Sequential:
     std = tensor((0.2471, 0.2435, 0.2616)).view(3,1,1).cuda()
 
     model = nn.Sequential(
-        Normalize(mu, std if args.stddev else 1.0),
+        Normalize(mu, std),
         backbone,
     ).cuda()
 

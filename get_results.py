@@ -4,7 +4,7 @@ import pandas as pd
 
 DIR_EXPS = "./exps/"
 
-df = pd.DataFrame(columns=['backbone', 'conv', 'linear', 'eps', 'std', 'lr max', 'epochs', 'seed', 
+df = pd.DataFrame(columns=['backbone', 'conv', 'linear', 'eps', 'std', 'loss', 'lr max', 'epochs', 'seed', 
                            'test acc', 'emp lip', 'robust acc', 'cert robust', 'train acc', 'exp name', 'parameters'])
 
 for dir_name in sorted(os.listdir(DIR_EXPS)):
@@ -37,10 +37,12 @@ for dir_name in sorted(os.listdir(DIR_EXPS)):
             rob_acc = float(line.split()[-1])
         if 'parameters :' in line:
             num_params = float(line.split()[-1].split('M')[0])
+    
+    loss = args['loss'] if 'loss' in args.keys() else 'margin'
 
     dict_line = {
         'backbone': args['backbone'], 'conv': args['conv'], 'linear': args['linear'], 'eps': args['eps'], 
-        'std': bool(args['stddev']), 'lr max': args['lr_max'], 
+        'lr max': args['lr_max'], 'loss': loss,
         'epochs': epochs, 'seed': args['seed'], 'exp name': args['exp_name'].split('_LRMAX')[0],
         'test acc': test_acc, 'emp lip': emp_lip, 'robust acc': rob_acc, 'cert robust': cert_rob, 'train acc': train_acc,
         'parameters': num_params,
@@ -49,16 +51,15 @@ for dir_name in sorted(os.listdir(DIR_EXPS)):
     df.loc[len(df)] = pd.Series(dict_line)
 
 agg = df.groupby('exp name').aggregate({
-    'exp name': 'count', 'backbone': ' '.join, 'conv': ' '.join, 'linear': ' '.join, 'std': 'mean',
-    'lr max': 'mean', 'test acc': 'mean', 
+    'exp name': 'count', 'backbone': ' '.join, 'conv': ' '.join, 'linear': ' '.join,
+    'lr max': 'mean', 'loss': ' '.join, 'test acc': 'mean', 
     'emp lip': 'mean', 'robust acc': 'mean', 'cert robust': 'mean', 'parameters': 'mean'})
 agg.rename(columns={'exp name': 'count'}, inplace=True)
-for key in ['backbone', 'conv', 'linear']:
+for key in ['backbone', 'conv', 'linear', 'loss']:
     agg[key] = agg[key].apply(lambda x: x.split()[0])
-agg['std'] = agg['std'].astype(bool)
 
 agg = agg.sort_values(by = ['backbone', 'test acc'], ascending=False)
 agg['exp name'] = agg.index
 agg = agg.reset_index(drop=True)
-print(agg.iloc[:, :-1])
+print(agg.drop(columns=['exp name']))
 agg.to_csv("results.csv")

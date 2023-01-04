@@ -10,13 +10,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-e', '--exp_name',   default='',                    help='experiment name')
 parser.add_argument('--gpu',              default='0',                   help='gpu id')
 parser.add_argument('--batch_size',       default=256,       type=int,   help='mini-batch size')
-parser.add_argument('--opt',              default="Adam",    type=str,   help='adam or sgd')
+parser.add_argument('--loss',             default="margin",  type=str,   help='margin or ce', choices=['margin', 'ce'])
+parser.add_argument('--opt',              default="adam",    type=str,   help='adam or sgd', choices=['adam', 'sgd'])
+parser.add_argument('--lr_max',           default=0.01,      type=float)
 parser.add_argument('--weight_decay',     default=0.0,       type=float, help='optimizer weight decay')
 parser.add_argument('--epochs',           default=100,       type=int,   help='epochs')
 
-parser.add_argument('--log_step',         default=50,        type=int,   help='step for logging in iteration')
-parser.add_argument('--save_step',        default=1,         type=int,   help='step for saving in epoch')
-parser.add_argument('--data_dir',         default='./',                  help='data directory')
 parser.add_argument('--save_dir',         default='./exps',              help='save directory for checkpoint')
 
 parser.add_argument('--seed',             default=777,       type=int,   help='random seed')
@@ -27,22 +26,19 @@ parser.add_argument('--conv',             default='SESConv2dF',
                     choices=['CayleyConv', 'BCOP', 'PlainConv', 'CayleyConvED', 'CayleyConvED2', 'ECO', 'SOC', 'SESConv2dF', 'SESConv2dS', 'SESConv2dFT'])
 parser.add_argument('--linear',           default='SESLinear', 
                     choices=['CayleyLinear', 'BjorckLinear', 'Linear', 'SESLinear'])
-parser.add_argument('--lr_max',           default=0.01,      type=float)
 parser.add_argument('--eps',              default=36.0,      type=float)
-parser.add_argument('--stddev',           action='store_true')
 
 class Config():
     def __init__(self, opt) -> None:
         self.exp_name: str = opt.exp_name
         self.gpu_id: str = opt.gpu
         self.batch_size: int = opt.batch_size
+        self.loss: str = opt.loss.lower()
         self.opt: str = opt.opt.lower()
+        self.lr_max: float = opt.lr_max
         self.weight_decay: float = opt.weight_decay
         self.epochs: int = opt.epochs
 
-        self.log_step: int = opt.log_step
-        self.save_step: int = opt.save_step
-        self.data_dir: str = opt.data_dir
         self.save_dir: str = opt.save_dir
 
         self.seed: int = int(opt.seed)
@@ -51,8 +47,6 @@ class Config():
         self.backbone: str = opt.backbone
         self.conv: str = opt.conv
         self.linear: str = opt.linear
-        self.lr_max: float = opt.lr_max
-        self.stddev: bool = opt.stddev
         self.eps: float = opt.eps
 
         assert len(self.__dict__) == len(opt.__dict__), "Check argparse"
@@ -64,7 +58,7 @@ class Config():
             'backbone': '',
             'conv': '',
             'linear': '',
-            'stddev': 'STD',
+            'loss' : 'loss_',
             'lr_max': 'LRMAX',
             'epochs': 'Ep',
             'batch_size': 'B',
