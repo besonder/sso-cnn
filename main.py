@@ -33,7 +33,7 @@ if __name__ == '__main__':
     # whether the model is SES or not
     sesmode = False
     for _, layer in model.named_modules():
-        if layer.__class__.__name__ in ["SESConv2dFT", "SESConv2dST", "SESLinearT"]:
+        if "SES" in layer.__class__.__name__:
             sesmode = True
             break
 
