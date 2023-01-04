@@ -13,6 +13,7 @@ from dataset.load_data import get_dataset
 from utils.evaluate import accuracy, rob_acc, empirical_local_lipschitzity, cert_stats
 from utils.option import get_option
 from utils.utils import do_seed, cal_num_parameters, get_log_meters
+from model import extract_SESLoss
 
 if __name__ == '__main__':
     start_main = time.time()
@@ -29,12 +30,20 @@ if __name__ == '__main__':
     model = get_model(args)
     logger(f"The number of parameters : {cal_num_parameters(model.parameters())/1000000:.2f}M", consol=False)
 
+    # whether the model is SES or not
+    sesmode = False
+    for _, layer in model.named_modules():
+        if layer.__class__.__name__ in ["SESConv2dFT", "SESConv2dST", "SESLinearT"]:
+            sesmode = True
+            break
+
     # lr schedule: superconvergence
     lr_schedule = lambda t: np.interp([t], [0, args.epochs*2//5, args.epochs*4//5, args.epochs], [0, args.lr_max, args.lr_max/20.0, 0])[0]
 
     # optimizer: Adam
     if args.opt == "adam":
         opt = optim.Adam(model.parameters(), lr=args.lr_max, weight_decay=args.weight_decay)
+        opt1 = optim.Adam(model.parameters(), lr=args.lr_max, weight_decay=args.weight_decay)
     elif args.opt == 'sgd':
         opt = optim.SGD(model.parameters(), lr=args.lr_max, weight_decay=args.weight_decay)
 
@@ -51,6 +60,17 @@ if __name__ == '__main__':
     writer = SummaryWriter(log_dir=args.log_dir)
     global_step = 0
 
+    # initialize H
+    if sesmode:
+        for i in range(100):
+            device = torch.device("cuda")
+            x = torch.randn(10, 3, 32, 32).to(device)
+            y = model(x)
+            sesloss = extract_SESLoss(model)
+            opt1.zero_grad()
+            sesloss.backward()
+            opt1.step()        
+
     for epoch in range(args.epochs):
         start = time.time()
         for i, batch in enumerate(train_batches):
@@ -62,7 +82,11 @@ if __name__ == '__main__':
             
             output = model(X)
             loss = criterion(output, y)
-
+            
+            # SESLoss
+            if sesmode:
+                loss += 1.7*extract_SESLoss(model) # 1.5* lip 7.2629, Certi 0.8238, E robust acc 0.7367  1.7*  lip 6.2420, Certi 0.8262, E robust acc 0.7412 test 0.8754
+            
             opt.zero_grad()
             loss.backward()
             opt.step()
