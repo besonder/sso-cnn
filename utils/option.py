@@ -23,9 +23,9 @@ parser.add_argument('--num_workers',      default=4,         type=int,   help='n
 
 parser.add_argument('--backbone',         default='ResNet9', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
 parser.add_argument('--conv',             default='SESConv2dF', 
-                    choices=['CayleyConv', 'BCOP', 'PlainConv', 'CayleyConvED', 'CayleyConvED2', 'ECO', 'SOC', 'SESConv2dF', 'SESConv2dS', 'SESConv2dFT'])
+                    choices=['CayleyConv', 'BCOP', 'PlainConv', 'CayleyConvED', 'CayleyConvED2', 'ECO', 'SOC', 'SESConv2dF', 'SESConv2dS', 'SESConv2dFT', 'SESConv2dST1x1'])
 parser.add_argument('--linear',           default='SESLinear', 
-                    choices=['CayleyLinear', 'BjorckLinear', 'Linear', 'SESLinear'])
+                    choices=['CayleyLinear', 'BjorckLinear', 'Linear', 'SESLinear', 'SESLinearT'])
 parser.add_argument('--eps',              default=36.0,      type=float)
 
 class Config():
