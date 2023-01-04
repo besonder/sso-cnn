@@ -5,7 +5,7 @@ from torch import Tensor, nn
 from .cayley import StridedConv, cayley
 
 class CayleyConvED(StridedConv, nn.Conv2d):
-    def __init__(self, in_channels, out_channels, kernel_size=3, **kwargs):
+    def __init__(self, in_channels, out_channels, kernel_size=1, **kwargs):
         if 'stride' in kwargs and kwargs['stride'] == 2:
             self.stride = 2
             self.xcin = 4*in_channels
@@ -68,6 +68,8 @@ class CayleyConvED(StridedConv, nn.Conv2d):
 
     
     def forward(self, x: Tensor):
+        if len(x.shape) < 4:
+            x = x[..., None, None]
         cout = self.out_channels
 
         batches, _, n, _ = x.shape
@@ -95,7 +97,7 @@ class CayleyConvED(StridedConv, nn.Conv2d):
 
 
 class CayleyConvED2(CayleyConvED):
-    def __init__(self, in_channels, out_channels, kernel_size=3, **kwargs):
+    def __init__(self, in_channels, out_channels, kernel_size=1, **kwargs):
         super().__init__(in_channels, out_channels, kernel_size, **kwargs)
 
     def genH(self, cout, xcin):
@@ -135,6 +137,8 @@ class CayleyConvED2(CayleyConvED):
 
     
     def forward(self, x: Tensor):
+        if len(x.shape) < 4:
+            x = x[..., None, None]
         cout = self.out_channels
 
         batches, _, n, _ = x.shape
