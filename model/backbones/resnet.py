@@ -6,7 +6,7 @@ from ..cayley import CayleyConv, CayleyLinear
 from ..utils import GroupSort, ConvexCombo
 
 class ResNet9(nn.Module):
-    def __init__(self, conv=CayleyConv, linear=CayleyLinear):
+    def __init__(self, conv=CayleyConv, linear=CayleyLinear, num_classes=10):
         super().__init__()
         self.block1 = nn.Sequential(
             conv(3, 64, 3), GroupSort(),
@@ -33,7 +33,7 @@ class ResNet9(nn.Module):
             nn.AvgPool2d(2, divisor_override=2),
             nn.Flatten(),
             linear(2048, 512), GroupSort(),
-            linear(512, 10)
+            linear(512, num_classes)
         )
 
     def forward(self, x):

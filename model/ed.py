@@ -2,7 +2,18 @@ import numpy as np
 
 import torch
 from torch import Tensor, nn
-from .cayley import StridedConv, cayley
+from .cayley import StridedConv
+
+def cayley_ED(W):
+    if len(W.shape) == 2:
+        return cayley_ED(W[None])[0]
+
+    _, cin, cin = W.shape
+    I = torch.eye(cin, dtype=W.dtype, device=W.device)[None, :, :]
+    A = W - W.conj().transpose(1, 2)
+    # print((I+A).shape)
+    iIpA = torch.inverse(I + A)
+    return iIpA @ (I - A)
 
 class CayleyConvED(StridedConv, nn.Conv2d):
     def __init__(self, in_channels, out_channels, kernel_size=1, **kwargs):
@@ -86,7 +97,7 @@ class CayleyConvED(StridedConv, nn.Conv2d):
         if self.H == None:
             self.genH(n, self.kernel_size[0], cout, self.xcin)
 
-        cwxfft = self.H @ cayley(self.alpha * wfft / wfft.norm(), ED=True) @ xfft
+        cwxfft = self.H @ cayley_ED(self.alpha * wfft / wfft.norm()) @ xfft
 
         yfft = (cwxfft).reshape(n, n // 2 + 1, cout, batches)
 
@@ -152,7 +163,7 @@ class CayleyConvED2(CayleyConvED):
         if self.alpha is None:
             self.alpha = nn.Parameter(torch.tensor(wfft.norm().item(), requires_grad=True).to(x.device))
 
-        wxfft = cayley(self.alpha * wfft / wfft.norm(), ED=True) @ xfft
+        wxfft = cayley_ED(self.alpha * wfft / wfft.norm()) @ xfft
         yfft = wxfft.reshape(n, n // 2 + 1, self.xcin, batches)
         y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1), x.shape[2:])
         if self.H == None:

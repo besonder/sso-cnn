@@ -35,7 +35,7 @@ def Cayley(W):
             
 
 class CayleyConv2d(StridedConv2d, nn.Conv2d):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, bias=True):
+    def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, bias=True):
         super().__init__(in_channels, out_channels, kernel_size, stride=stride, bias=bias)
         self.register_parameter('alpha', None)
 

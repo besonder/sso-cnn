@@ -2,13 +2,12 @@ import numpy as np
 import einops
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 def extract_SESLoss(model):
     SESLoss = 0
     for _, layer in model.named_modules():
-        if "SES" in layer.__class__.__name__:
+        if all([key in layer.__class__.__name__ for key in ['SES', 'T']]):
             SESLoss += layer.L
     return SESLoss
 
@@ -31,7 +30,7 @@ class StridedConv2d(nn.Module):
 
 
 class SESConv2dFT(StridedConv2d, nn.Conv2d):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, bias=True):
+    def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, bias=True):
         if stride != 1 and stride != 2:
             raise Exception("Only 1 or 2 are allowed for stride")
         super().__init__(in_channels, out_channels, kernel_size, stride=stride, bias=bias)

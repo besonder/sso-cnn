@@ -16,16 +16,18 @@ parser.add_argument('--lr_max',           default=0.01,      type=float)
 parser.add_argument('--weight_decay',     default=0.0,       type=float, help='optimizer weight decay')
 parser.add_argument('--epochs',           default=100,       type=int,   help='epochs')
 
-parser.add_argument('--save_dir',         default='./exps',              help='save directory for checkpoint')
+parser.add_argument('--save_dir',         default='./exps',  type=str,   help='save directory for checkpoint')
+parser.add_argument('--dataset',          default='cifar10', type=str,   help='cifar10 or cifar100', choices=['cifar10', 'cifar100'])
 
 parser.add_argument('--seed',             default=777,       type=int,   help='random seed')
 parser.add_argument('--num_workers',      default=4,         type=int,   help='number of workers in data loader')
 
 parser.add_argument('--backbone',         default='ResNet9', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
 parser.add_argument('--conv',             default='SESConv2dF', 
-                    choices=['CayleyConv', 'BCOP', 'PlainConv', 'CayleyConvED', 'CayleyConvED2', 'ECO', 'SOC', 'SESConv2dF', 'SESConv2dS', 'SESConv2dFT', 'SESConv2dST1x1'])
-parser.add_argument('--linear',           default='SESLinear', 
-                    choices=['CayleyLinear', 'BjorckLinear', 'Linear', 'SESLinear', 'SESLinearT'])
+                    choices=['PlainConv', 'BCOP', 'CayleyConv', 'SOC', 'ECO', 'CayleyConvED', 'CayleyConvED2', 
+                             'SESConv2dF', 'SESConv2dS', 'SESConv2dFT', 'SESConv2dST1x1'])
+parser.add_argument('--linear',           default='none', help='linear ftn. If linear is "none", then use the linear ftn corresponding to chosen conv',
+                    choices=['none', 'Linear', 'BjorckLinear', 'CayleyLinear', 'SESLinear', 'SESLinearT'])
 parser.add_argument('--eps',              default=36.0,      type=float)
 
 class Config():
@@ -40,6 +42,7 @@ class Config():
         self.epochs: int = opt.epochs
 
         self.save_dir: str = opt.save_dir
+        self.dataset: str = opt.dataset
 
         self.seed: int = int(opt.seed)
         self.num_workers: int = opt.num_workers
@@ -51,8 +54,15 @@ class Config():
 
         assert len(self.__dict__) == len(opt.__dict__), "Check argparse"
 
-        if self.conv in ['BCOP', 'SOC', 'ECO']:
-            self.linear = self.conv
+        conv_linear = {
+            'PlainConv': 'Linear', 'BCOP': 'BCOP', 'CayleyConv': 'CayleyLinear', 'SOC': 'SOC', 'ECO': 'ECO',
+            'CayleyConvED': 'CayleyLinear', 'CayleyConvED2': 'CayleyLinear',
+            'SESConv2dF': 'CayleyLinear', 'SESConv2dS': 'CayleyLinear', 
+            'SESConv2dFT': 'SESLinear', 'SESConv2dST1x1': 'SESLinear',
+        }
+
+        if self.linear == 'none':
+            self.linear = conv_linear[self.conv]
 
         self.hyper_param = {
             'backbone': '',

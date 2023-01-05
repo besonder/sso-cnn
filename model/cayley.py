@@ -32,29 +32,18 @@ class StridedConv(nn.Module):
                     einops.rearrange(x[0], downsample, k1=2, k2=2))  
 
         
-def cayley(W, ED=False):
+def cayley(W):
     if len(W.shape) == 2:
         return cayley(W[None])[0]
 
-    if ED:
-        _, cin, cin = W.shape
-        I = torch.eye(cin, dtype=W.dtype, device=W.device)[None, :, :]
-        A = W - W.conj().transpose(1, 2)
-        # print((I+A).shape)
-        iIpA = torch.inverse(I + A)
-        return iIpA @ (I - A)
-
-    else:
-        _, cout, cin = W.shape
-        if cin > cout:
-            return cayley(W.transpose(1, 2)).transpose(1, 2)
-        U, V = W[:, :cin], W[:, cin:]
-        I = torch.eye(cin, dtype=W.dtype, device=W.device)[None, :, :]
-        A = U - U.conj().transpose(1, 2) + V.conj().transpose(1, 2) @ V
-        iIpA = torch.inverse(I + A)
-        return torch.cat((iIpA @ (I - A), -2 * V @ iIpA), axis=1)
-
-
+    _, cout, cin = W.shape
+    if cin > cout:
+        return cayley(W.transpose(1, 2)).transpose(1, 2)
+    U, V = W[:, :cin], W[:, cin:]
+    I = torch.eye(cin, dtype=W.dtype, device=W.device)[None, :, :]
+    A = U - U.conj().transpose(1, 2) + V.conj().transpose(1, 2) @ V
+    iIpA = torch.inverse(I + A)
+    return torch.cat((iIpA @ (I - A), -2 * V @ iIpA), axis=1)
 
 
 class CayleyConv(StridedConv, nn.Conv2d):

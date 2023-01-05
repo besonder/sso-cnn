@@ -8,7 +8,7 @@ df = pd.DataFrame(columns=['backbone', 'conv', 'linear', 'eps', 'std', 'loss', '
                            'test acc', 'emp lip', 'robust acc', 'cert robust', 'train acc', 'exp name', 'parameters'])
 
 for dir_name in sorted(os.listdir(DIR_EXPS)):
-    if 'debug' in dir_name: 
+    if any([key in dir_name for key in ['debug']]): 
         continue
     file_path = os.path.join(DIR_EXPS, dir_name, "log.txt")
     if not os.path.exists(file_path): 
