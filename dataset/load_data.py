@@ -6,7 +6,8 @@ DATA_DIR = './data'
 
 def get_dataset(args: Config):
     args.logger(f'Using batch size: {args.batch_size}')
-    dataset = cifar10(DATA_DIR)
+    dataset = load_cifar(DATA_DIR, args.dataset)
+
     t = Timer()
     args.logger('Preprocessing training data')
 

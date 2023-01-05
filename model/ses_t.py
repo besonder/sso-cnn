@@ -2,6 +2,7 @@ import numpy as np
 import einops
 import torch
 import torch.nn as nn
+from .cayley import StridedConv
 
 
 def extract_SESLoss(model):
@@ -12,28 +13,11 @@ def extract_SESLoss(model):
     return SESLoss
 
 
-class StridedConv2d(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, bias=True):
-        self.cin = in_channels
-        self.cout = out_channels
-        
-        if stride == 2:
-            self.xcin = 4 * in_channels
-            self.kernel_size = max(1, kernel_size // 2)
-        else:
-            self.xcin = in_channels
-            self.kernel_size = kernel_size
-        super().__init__(self.xcin, self.cout, self.kernel_size, stride=stride, bias=bias)
-        downsample = "b c (w k1) (h k2) -> b (c k1 k2) w h"
-        if stride == 2:
-            self.register_forward_pre_hook(lambda _, x: einops.rearrange(x[0], downsample, k1=2, k2=2))            
-
-
-class SESConv2dFT(StridedConv2d, nn.Conv2d):
-    def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, bias=True):
+class SESConv2dFT(StridedConv, nn.Conv2d):
+    def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, bias=True, **kwargs):
         if stride != 1 and stride != 2:
             raise Exception("Only 1 or 2 are allowed for stride")
-        super().__init__(in_channels, out_channels, kernel_size, stride=stride, bias=bias)
+        super().__init__(in_channels, out_channels, kernel_size, stride=stride, bias=bias, **kwargs)
         self.cin = in_channels
         self.cout = out_channels
         self.stride = stride
@@ -79,7 +63,7 @@ class SESConv2dFT(StridedConv2d, nn.Conv2d):
             ColAngLoss = self.loss(HTHAngle, torch.zeros_like(HTHAngle, dtype=HTHAngle.dtype))
             self.L = self.cout*ColLoss + self.xcin*RowLoss + ColAngLoss        
         yfft = (Hfft @ xfft).reshape(n, n // 2 + 1, self.cout, batches)
-        y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1))
+        y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1), x.shape[2:])
         if self.bias is not None:
             y += self.bias[:, None, None]          
         return y

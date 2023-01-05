@@ -8,12 +8,11 @@ import torch
 from torch import nn, optim
 from torch.utils.tensorboard import SummaryWriter
 
-from model import get_model, margin_loss
+from model import get_model, margin_loss, extract_SESLoss
 from dataset.load_data import get_dataset
 from utils.evaluate import accuracy, rob_acc, empirical_local_lipschitzity, cert_stats
 from utils.option import get_option
 from utils.utils import do_seed, cal_num_parameters, get_log_meters
-from model import extract_SESLoss
 
 if __name__ == '__main__':
     start_main = time.time()
@@ -87,7 +86,7 @@ if __name__ == '__main__':
             
             # SESLoss
             if sesmode:
-                loss += 1.7*extract_SESLoss(model) # 1.5* lip 7.2629, Certi 0.8238, E robust acc 0.7367  1.7*  lip 6.2420, Certi 0.8262, E robust acc 0.7412 test 0.8754
+                loss += args.lam *extract_SESLoss(model) # 1.5* lip 7.2629, Certi 0.8238, E robust acc 0.7367  1.7*  lip 6.2420, Certi 0.8262, E robust acc 0.7412 test 0.8754
             
             opt.zero_grad()
             loss.backward()

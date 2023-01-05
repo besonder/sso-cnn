@@ -42,3 +42,13 @@ class Normalize(nn.Module):
         if self.std is not None:
             return (x - self.mu) / self.std
         return (x - self.mu)
+
+class PlainConv(nn.Conv2d):
+    def __init__(
+        self, in_channels, out_channels, kernel_size=1, stride=1, padding=1, dilation=1, groups=1, 
+        bias=True, padding_mode='zeros', device=None, dtype=None
+    ) -> None:
+        super().__init__(
+            in_channels, out_channels, kernel_size, stride, padding, 
+            dilation, groups, bias, padding_mode, device, dtype
+        )

@@ -34,9 +34,14 @@ def warmup_cudnn(model, batch_size):
 ## dataset
 #####################
 
-def cifar10(root):
-    train_set = torchvision.datasets.CIFAR10(root=root, train=True, download=True)
-    test_set = torchvision.datasets.CIFAR10(root=root, train=False, download=True)
+def load_cifar(root, dataset='cifar10'):
+    if dataset == 'cifar10':
+        torch_dataset = torchvision.datasets.CIFAR10
+    elif dataset == 'cifar100':
+        torch_dataset = torchvision.datasets.CIFAR100
+
+    train_set = torch_dataset(root=root, train=True,  download=True)
+    test_set  = torch_dataset(root=root, train=False, download=True)
     try:
         if not hasattr(train_set, 'train_data'):
             raise NameError('old torch detected')

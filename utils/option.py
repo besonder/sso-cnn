@@ -5,30 +5,42 @@ import argparse
 import shutil
 from .utils import Logger
 
-parser = argparse.ArgumentParser()
+def get_args():
+    parser = argparse.ArgumentParser()
 
-parser.add_argument('-e', '--exp_name',   default='',                    help='experiment name')
-parser.add_argument('--gpu',              default='0',                   help='gpu id')
-parser.add_argument('--batch_size',       default=256,       type=int,   help='mini-batch size')
-parser.add_argument('--loss',             default="margin",  type=str,   help='margin or ce', choices=['margin', 'ce'])
-parser.add_argument('--opt',              default="adam",    type=str,   help='adam or sgd', choices=['adam', 'sgd'])
-parser.add_argument('--lr_max',           default=0.01,      type=float)
-parser.add_argument('--weight_decay',     default=0.0,       type=float, help='optimizer weight decay')
-parser.add_argument('--epochs',           default=100,       type=int,   help='epochs')
+    parser.add_argument('-e', '--exp_name',   default='',                    help='experiment name')
+    parser.add_argument('--gpu',              default='0',                   help='gpu id')
+    parser.add_argument('--batch_size',       default=256,       type=int,   help='mini-batch size')
+    parser.add_argument('--loss',             default="margin",  type=str,   help='margin or ce', choices=['margin', 'ce'])
+    parser.add_argument('--opt',              default="adam",    type=str,   help='adam or sgd', choices=['adam', 'sgd'])
+    parser.add_argument('--lr_max',           default=0.01,      type=float)
+    parser.add_argument('--weight_decay',     default=0.0,       type=float, help='optimizer weight decay')
+    parser.add_argument('--epochs',           default=100,       type=int,   help='epochs')
 
-parser.add_argument('--save_dir',         default='./exps',  type=str,   help='save directory for checkpoint')
-parser.add_argument('--dataset',          default='cifar10', type=str,   help='cifar10 or cifar100', choices=['cifar10', 'cifar100'])
+    parser.add_argument('--save_dir',         default='./exps',  type=str,   help='save directory for checkpoint')
+    parser.add_argument('--dataset',          default='cifar10', type=str,   help='cifar10 or cifar100', choices=['cifar10', 'cifar100'])
 
-parser.add_argument('--seed',             default=777,       type=int,   help='random seed')
-parser.add_argument('--num_workers',      default=4,         type=int,   help='number of workers in data loader')
+    parser.add_argument('--seed',             default=777,       type=int,   help='random seed')
+    parser.add_argument('--num_workers',      default=4,         type=int,   help='number of workers in data loader')
 
-parser.add_argument('--backbone',         default='ResNet9', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
-parser.add_argument('--conv',             default='SESConv2dF', 
-                    choices=['PlainConv', 'BCOP', 'CayleyConv', 'SOC', 'ECO', 'CayleyConvED', 'CayleyConvED2', 
-                             'SESConv2dF', 'SESConv2dS', 'SESConv2dFT', 'SESConv2dST1x1'])
-parser.add_argument('--linear',           default='none', help='linear ftn. If linear is "none", then use the linear ftn corresponding to chosen conv',
-                    choices=['none', 'Linear', 'BjorckLinear', 'CayleyLinear', 'SESLinear', 'SESLinearT'])
-parser.add_argument('--eps',              default=36.0,      type=float)
+    parser.add_argument('--backbone',         default='ResNet9', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
+    parser.add_argument('--conv',             default='SESConv2dF', 
+                        choices=['PlainConv', 'BCOP', 'CayleyConv', 'SOC', 'ECO', 'CayleyConvED', 'CayleyConvED2', 
+                                'SESConv2dF', 'SESConv2dS', 'SESConv2dFT', 'SESConv2dST1x1'])
+    parser.add_argument('--linear',           default='none', help='linear ftn. If linear is "none", then use the linear ftn corresponding to chosen conv',
+                        choices=['none', 'Linear', 'BjorckLinear', 'CayleyLinear', 'SESLinear', 'SESLinearT'])
+    parser.add_argument('--eps',              default=36.0,      type=float)
+
+    args, unknown_args = parser.parse_known_args()
+
+    if 'SES' in args.conv:
+        parser.add_argument('--lam',         default=1.7,  type=float, help='the lambda of additional loss')
+        args, unknown_args = parser.parse_known_args()
+    if args.backbone == 'LipConvNet':
+        parser.add_argument('--n_lip',       default=1,    type=int,   help='the number of blocks in LipConvNet. 1, 2, 3, 4, 5, 6, 7, 8')
+        args, unknown_args = parser.parse_known_args()
+
+    return args, unknown_args
 
 class Config():
     def __init__(self, opt) -> None:
@@ -52,6 +64,11 @@ class Config():
         self.linear: str = opt.linear
         self.eps: float = opt.eps
 
+        if 'SES' in self.conv:
+            self.lam = opt.lam
+        if self.backbone == 'LipConvNet':
+            self.n_lip = opt.n_lip
+
         assert len(self.__dict__) == len(opt.__dict__), "Check argparse"
 
         conv_linear = {
@@ -64,16 +81,27 @@ class Config():
         if self.linear == 'none':
             self.linear = conv_linear[self.conv]
 
+        self.num_classes = {'cifar10': 10, 'cifar100': 100}[self.dataset]
+        if self.backbone == 'LipConvNet':
+            self.backbone += f"_N{self.n_lip*5}"
+
         self.hyper_param = {
+            'dataset': '',
             'backbone': '',
             'conv': '',
             'linear': '',
+        }
+
+        if "SES" in self.conv:
+            self.hyper_param.update({'lam': 'Lam'})
+
+        self.hyper_param.update({
             'loss' : 'loss_',
             'lr_max': 'LRMAX',
-            'epochs': 'Ep',
-            'batch_size': 'B',
+            # 'epochs': 'Ep',
+            # 'batch_size': 'B',
             'seed': 'SEED',
-        }
+        })
 
         self._build()
 
@@ -114,8 +142,8 @@ class Config():
         self.log_dir = log_dir
 
 def get_option() -> Config:
-    option, unknown_args = parser.parse_known_args()
+    args, unknown_args = get_args()
     if len(unknown_args) and unknown_args[0] == '-f' and 'jupyter' in unknown_args[1]:
         unknown_args = unknown_args[2:]
     assert len(unknown_args) == 0, f"Invalid Arguments: {str(unknown_args)}"
-    return Config(option)
+    return Config(args)

@@ -9,7 +9,7 @@ from .eco import ECOConv
 from .ed import CayleyConvED, CayleyConvED2
 from .ses import SESConv2dF, SESConv2dS, SESLinear
 from .ses_t import extract_SESLoss, SESConv2dFT, SESConv2dST1x1, SESLinearT
-from .utils import margin_loss, Normalize
+from .utils import margin_loss, Normalize, PlainConv
 from utils.option import Config
 
 def get_model(args: Config) -> nn.Sequential:
@@ -34,7 +34,7 @@ def get_model(args: Config) -> nn.Sequential:
     elif args.conv == "SOC":
         conv = SOCConv
     elif args.conv == "PlainConv":
-        conv = nn.Conv2d
+        conv = PlainConv
 
     if args.linear == "CayleyLinear":
         linear = CayleyLinear
@@ -49,13 +49,13 @@ def get_model(args: Config) -> nn.Sequential:
         args.logger("Conv and Linear are same.")
 
     if args.backbone == "KWLarge":
-        backbone = KWLarge(conv=conv, linear=linear)
+        backbone = KWLarge(conv=conv, linear=linear, num_classes=args.num_classes)
     elif args.backbone == "ResNet9":
-        backbone = ResNet9(conv=conv, linear=linear)
+        backbone = ResNet9(conv=conv, linear=linear, num_classes=args.num_classes)
     elif args.backbone == "WideResNet":
-        backbone = WideResNet(conv=conv, linear=linear)
-    elif args.backbone == "LipConvNet":
-        backbone = LipNet_n(conv=conv, linear=linear, num_blocks=1, num_classes=10)
+        backbone = WideResNet(conv=conv, linear=linear, num_classes=args.num_classes)
+    elif "LipConvNet" in args.backbone:
+        backbone = LipNet_n(conv=conv, linear=linear, num_blocks=args.n_lip, num_classes=args.num_classes)
 
     mu = tensor((0.4914, 0.4822, 0.4465)).view(3,1,1).cuda()
     std = tensor((0.2471, 0.2435, 0.2616)).view(3,1,1).cuda()

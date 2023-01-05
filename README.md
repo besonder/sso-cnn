@@ -5,6 +5,10 @@
     - 실험세팅 완료(Adam, LR_max: 0.01, Standardization 항상 사용 등)
     - conv만 argument 입력시, 해당되는 linear ftn 자동 사용.
     - SESLinear bug fix.
+    - PlainConv : LipConvNet 제외 모두 적용 가능
+    - cifar100 사용 가능. `--dataset cifar100` 으로 이용.
+    - `SES` 방법의 경우 `--lam` (default: 1.7) 추가 arg 사용 가능.
+    - `LipConvNet` 의 경우 `--n_lip` (default: 1) 추가 arg 사용 가능. (1 -> LipConvNet-5에 해당.)
 
 ## 명령어
 - 중요 arguments
@@ -18,6 +22,8 @@ python main.py --gpu 0 --exp_name Exp --conv CayleyConv --backbone ResNet9 --see
 
 ## SES
 python main.py --gpu 0 --exp_name Exp --conv SESConv2dFT --linear CayleyLinear --backbone ResNet9 --seed 1
+## SESConvFT + SESLinear, LipConvNet-10
+python main.py --gpu 0 --exp_name Exp --conv SESConv2dFT --lam 1.7 --backbone LipConvNet --n_lip 2 --seed 1
 
 ```
 
@@ -45,5 +51,6 @@ tensorboard --logdir exps --host 0.0.0.0 --port 6006
 ## Precaution & TODO List
 - Conv들의 Kernel size는 default 1.
 - SES 방법들은 LipConvNet에서 작동 안됨.
-- Plain 안됨.
+- Plain, LipConvNet안됨. (stride, padding 때문에 resolution 크기 차이.)
+- SESLinearT, LipConvNet에서 안됨.
 
