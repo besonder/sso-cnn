@@ -85,7 +85,7 @@ if __name__ == '__main__':
             
             # SESLoss
             if sesmode:
-                loss += 1.7*extract_SESLoss(model) # 1.5* lip 7.2629, Certi 0.8238, E robust acc 0.7367  1.7*  lip 6.2420, Certi 0.8262, E robust acc 0.7412 test 0.8754
+                loss += 1.7*extract_SESLoss(model) # scale 0.5, 1.7*, norm Cer 0.8068, Emp 0.7413;  1.7*  lip 6.2420, Certi 0.8262, E robust acc 0.7412 test 0.8754
             
             opt.zero_grad()
             loss.backward()
