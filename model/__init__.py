@@ -36,15 +36,16 @@ def get_model(args: Config) -> nn.Sequential:
     elif args.conv == "PlainConv":
         conv = PlainConv
 
-    if args.linear == "CayleyLinear":
+    if args.linear == "Linear":
+        linear = nn.Linear
+    elif args.linear == "CayleyLinear":
         linear = CayleyLinear
     elif args.linear == 'SESLinear':
         linear = SESLinear
-    elif args.linear == "Linear":
-        linear = nn.Linear
     elif args.linear == "SESLinearT":
         linear = SESLinearT
     else:
+        assert args.conv == args.linear, "conv and linear should be same."
         linear = conv
         args.logger("Conv and Linear are same.")
 

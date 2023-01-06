@@ -72,10 +72,12 @@ class Config():
         assert len(self.__dict__) == len(opt.__dict__), "Check argparse"
 
         conv_linear = {
-            'PlainConv': 'Linear', 'BCOP': 'BCOP', 'CayleyConv': 'CayleyLinear', 'SOC': 'SOC', 'ECO': 'ECO',
-            'CayleyConvED': 'CayleyLinear', 'CayleyConvED2': 'CayleyLinear',
-            'SESConv2dF': 'CayleyLinear', 'SESConv2dS': 'CayleyLinear', 
-            'SESConv2dFT': 'SESLinear', 'SESConv2dST1x1': 'SESLinear',
+            'PlainConv'    : 'Linear',         
+            'BCOP' : 'BCOP', 'SOC' : 'SOC', 'ECO': 'ECO',
+            'CayleyConv'   : 'CayleyLinear',
+            'CayleyConvED' : 'CayleyLinear', 'CayleyConvED2' : 'CayleyLinear',
+            'SESConv2dF'   : 'CayleyLinear', 'SESConv2dS'    : 'CayleyLinear', 
+            'SESConv2dFT'  : 'SESLinearT',   'SESConv2dST1x1': 'SESLinearT',
         }
 
         if self.linear == 'none':
