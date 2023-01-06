@@ -60,17 +60,17 @@ if __name__ == '__main__':
     writer = SummaryWriter(log_dir=args.log_dir)
     global_step = 0
 
-    # initialize H
-    if sesmode:
-        opt1 = optim.Adam(model.parameters(), lr=args.lr_max, weight_decay=args.weight_decay)
-        for i in range(100):
-            device = torch.device("cuda")
-            x = torch.randn(10, 3, 32, 32).to(device)
-            y = model(x)
-            sesloss = extract_SESLoss(model)
-            opt1.zero_grad()
-            sesloss.backward()
-            opt1.step()        
+    # # initialize H
+    # if sesmode:
+    #     opt1 = optim.Adam(model.parameters(), lr=args.lr_max, weight_decay=args.weight_decay)
+    #     for i in range(100):
+    #         device = torch.device("cuda")
+    #         x = torch.randn(10, 3, 32, 32).to(device)
+    #         y = model(x)
+    #         sesloss = extract_SESLoss(model)
+    #         opt1.zero_grad()
+    #         sesloss.backward()
+    #         opt1.step()        
 
     for epoch in range(args.epochs):
         start = time.time()
@@ -86,10 +86,11 @@ if __name__ == '__main__':
             
             # SESLoss
             if sesmode:
-                loss += args.lam *extract_SESLoss(model) # 1.5* lip 7.2629, Certi 0.8238, E robust acc 0.7367  1.7*  lip 6.2420, Certi 0.8262, E robust acc 0.7412 test 0.8754
+                loss += args.lam *extract_SESLoss(model)
             
             opt.zero_grad()
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1e-5)
             opt.step()
             
             correct = (output.max(1)[1] == y).sum().item()

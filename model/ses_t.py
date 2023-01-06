@@ -12,10 +12,10 @@ def extract_SESLoss(model):
     return SESLoss
 
 class SESConv2dFT(StridedConv, nn.Conv2d):
-    def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, bias=True, **kwargs):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, bias=True):
         if stride != 1 and stride != 2:
             raise Exception("Only 1 or 2 are allowed for stride")
-        super().__init__(in_channels, out_channels, kernel_size, stride=stride, bias=bias, **kwargs)
+        super().__init__(in_channels, out_channels, kernel_size, stride=stride, bias=bias)
         self.cin = in_channels
         self.cout = out_channels
         self.stride = stride
@@ -53,8 +53,9 @@ class SESConv2dFT(StridedConv, nn.Conv2d):
             MHTH = torch.triu(torch.ones((self.xcin, self.xcin), dtype=bool), diagonal=1).repeat(b, 1, 1).to(Hfft.device)
             HTHAngle = torch.abs(HTH[MHTH])
             ColAngLoss = self.loss(HTHAngle, torch.zeros_like(HTHAngle, dtype=HTHAngle.dtype))            
-            self.L = self.cout*ColLoss + self.xcin*RowLoss + RowAngLoss + ColAngLoss
-            # yfft = (Hfft/ColNorm @ xfft).reshape(n, n // 2 + 1, self.cout, batches)
+            self.L = self.cout*ColLoss + 2*self.xcin*RowLoss + 2*RowAngLoss + ColAngLoss
+            # self.L = self.cout*ColLoss + ColAngLoss
+            yfft = (Hfft/ColNorm @ xfft).reshape(n, n // 2 + 1, self.cout, batches)
         else:
             RowNorm = torch.norm(Hfft, dim=2, keepdim=True)
             RowLoss = self.loss(RowNorm, torch.ones_like(RowNorm, dtype=RowNorm.dtype))
@@ -68,10 +69,11 @@ class SESConv2dFT(StridedConv, nn.Conv2d):
             M = torch.triu(torch.ones((self.xcin, self.xcin), dtype=bool), diagonal=1).repeat(b, 1, 1).to(Hfft.device)
             HTHAngle = torch.abs(HTH[M])
             ColAngLoss = self.loss(HTHAngle, torch.zeros_like(HTHAngle, dtype=HTHAngle.dtype))
-            self.L = self.cout*ColLoss + self.xcin*RowLoss + ColAngLoss + RowAngLoss  
-            # yfft = (Hfft/RowNorm @ xfft).reshape(n, n // 2 + 1, self.cout, batches)
-        yfft = (Hfft/torch.norm(Hfft, dim=(1, 2), keepdim=True)*np.sqrt(self.xcin) @ xfft).reshape(n, n // 2 + 1, self.cout, batches)
-        y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1), x.shape[2:])
+            self.L = 2*self.cout*ColLoss + self.xcin*RowLoss + 2*ColAngLoss + RowAngLoss  
+            # self.L = self.xcin*RowLoss + RowAngLoss
+            yfft = (Hfft/RowNorm @ xfft).reshape(n, n // 2 + 1, self.cout, batches)
+        # yfft = (Hfft/torch.norm(Hfft, dim=(1, 2), keepdim=True)*np.sqrt(self.xcin) @ xfft).reshape(n, n // 2 + 1, self.cout, batches)
+        y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1))
         if self.bias is not None:
             y += self.bias[:, None, None]          
         return y
@@ -90,23 +92,29 @@ class SESConv2dST1x1(nn.Conv2d):
     def hook_fn(self, module, input):
         H = self.weight.reshape(self.cout, self.xcin)
         if self.cout >= self.xcin:
-            RowNorm = torch.norm(H, dim=1)
-            RowLoss = self.loss(RowNorm, torch.ones_like(RowNorm, dtype=RowNorm.dtype)*np.sqrt(self.xcin/self.cout))
-            ColNorm = torch.norm(H, dim=0)
-            ColLoss = self.loss(ColNorm, torch.ones_like(ColNorm, dtype=ColNorm.dtype))
+            RowNorm = torch.norm(H, dim=1, keepdim=True)
+            RowLoss = self.loss(RowNorm, torch.ones_like(RowNorm, dtype=RowNorm.dtype)*np.sqrt(self.xcin/self.cout)*self.scale)
+            ColNorm = torch.norm(H, dim=0, keepdim=True)
+            ColLoss = self.loss(ColNorm, torch.ones_like(ColNorm, dtype=ColNorm.dtype)*self.scale)
             HHT = H @ H.T
-            M = torch.triu(torch.ones((self.cout, self.cout), dtype=bool), diagonal=1).to(H.device)
-            RowAngLoss = self.loss(HHT[M], torch.zeros_like(HHT[M], dtype=HHT[M].dtype))
-            self.L = self.cout*ColLoss + self.xcin*RowLoss + RowAngLoss
-        else:
-            RowNorm = torch.norm(H, dim=1)
-            RowLoss = self.loss(RowNorm, torch.ones_like(RowNorm, dtype=RowNorm.dtype))
-            ColNorm = torch.norm(H, dim=0)
-            ColLoss = self.loss(ColNorm, torch.ones_like(ColNorm, dtype=ColNorm.dtype)*np.sqrt(self.cout/self.xcin))
+            MHHT = torch.triu(torch.ones((self.cout, self.cout), dtype=bool), diagonal=1).to(H.device)
+            RowAngLoss = self.loss(HHT[MHHT], torch.zeros_like(HHT[MHHT], dtype=HHT[MHHT].dtype))
             HTH = H.T @ H
-            M = torch.triu(torch.ones((self.xcin, self.xcin), dtype=bool), diagonal=1).to(H.device)
-            ColAngLoss = self.loss(HTH[M], torch.zeros_like(HTH[M], dtype=HTH[M].dtype))
-            self.L = self.cout*ColLoss + self.xcin*RowLoss + ColAngLoss        
+            MHTH = torch.triu(torch.ones((self.xcin, self.xcin), dtype=bool), diagonal=1).to(H.device)
+            ColAngLoss = self.loss(HTH[MHTH], torch.zeros_like(HTH[MHTH], dtype=HTH[MHTH].dtype))
+            self.L = self.cout*ColLoss + 2*self.xcin*RowLoss + 2*RowAngLoss + ColAngLoss
+        else:
+            RowNorm = torch.norm(H, dim=1, keepdim=True)
+            RowLoss = self.loss(RowNorm, torch.ones_like(RowNorm, dtype=RowNorm.dtype)*self.scale)
+            ColNorm = torch.norm(H, dim=0, keepdim=True)
+            ColLoss = self.loss(ColNorm, torch.ones_like(ColNorm, dtype=ColNorm.dtype)*np.sqrt(self.cout/self.xcin)*self.scale)
+            HHT = H @ H.T
+            MHHT = torch.triu(torch.ones((self.cout, self.cout), dtype=bool), diagonal=1).to(H.device)
+            RowAngLoss = self.loss(HHT[MHHT], torch.zeros_like(HHT[MHHT], dtype=HHT[MHHT].dtype))
+            HTH = H.T @ H
+            MHTH = torch.triu(torch.ones((self.xcin, self.xcin), dtype=bool), diagonal=1).to(H.device)
+            ColAngLoss = self.loss(HTH[MHTH], torch.zeros_like(HTH[MHTH], dtype=HTH[MHTH].dtype))
+            self.L = 2*self.cout*ColLoss + self.xcin*RowLoss + 2*ColAngLoss + RowAngLoss
 
 
 class SESLinearT(nn.Linear):
@@ -133,10 +141,11 @@ class SESLinearT(nn.Linear):
             HTH = H.T @ H
             MHTH = torch.triu(torch.ones((self.xcin, self.xcin), dtype=bool), diagonal=1).to(H.device)
             ColAngLoss = self.loss(HTH[MHTH], torch.zeros_like(HTH[MHTH], dtype=HTH[MHTH].dtype))
-            self.L = self.cout*ColLoss + self.xcin*RowLoss + RowAngLoss + ColAngLoss
+            self.L = self.cout*ColLoss + 2*self.xcin*RowLoss + 2*RowAngLoss + ColAngLoss
+            # self.L = self.cout*ColLoss + ColAngLoss
             with torch.no_grad():
-                # self.weight = torch.nn.Parameter(self.weight/ColNorm*self.scale)
-                self.weight = torch.nn.Parameter(self.weight/HNorm*np.sqrt(self.xcin)*self.scale)
+                self.weight = torch.nn.Parameter(self.weight/ColNorm*self.scale)
+                # self.weight = torch.nn.Parameter(self.weight/HNorm*np.sqrt(self.xcin)*self.scale)
         else:
             RowNorm = torch.norm(H, dim=1, keepdim=True)
             RowLoss = self.loss(RowNorm, torch.ones_like(RowNorm, dtype=RowNorm.dtype)*self.scale)
@@ -148,10 +157,11 @@ class SESLinearT(nn.Linear):
             HTH = H.T @ H
             MHTH = torch.triu(torch.ones((self.xcin, self.xcin), dtype=bool), diagonal=1).to(H.device)
             ColAngLoss = self.loss(HTH[MHTH], torch.zeros_like(HTH[MHTH], dtype=HTH[MHTH].dtype))
-            self.L = self.cout*ColLoss + self.xcin*RowLoss + ColAngLoss + RowAngLoss
+            self.L = 2*self.cout*ColLoss + self.xcin*RowLoss + 2*ColAngLoss + RowAngLoss
+            # self.L = self.xcin*RowLoss + RowAngLoss
             with torch.no_grad():
-                # self.weight = torch.nn.Parameter(self.weight/RowNorm*self.scale)
-                self.weight = torch.nn.Parameter(self.weight/HNorm*np.sqrt(self.cout)*self.scale)
+                self.weight = torch.nn.Parameter(self.weight/RowNorm*self.scale)
+                # self.weight = torch.nn.Parameter(self.weight/HNorm*np.sqrt(self.cout)*self.scale)
     
     def forward(self, input: Tensor) -> Tensor:
         input = input.flatten(start_dim=1)
