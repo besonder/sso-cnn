@@ -9,6 +9,9 @@
     - cifar100 사용 가능. `--dataset cifar100` 으로 이용.
     - `SES` 방법의 경우 `--lam` (default: 1.7) 추가 arg 사용 가능.
     - `LipConvNet` 의 경우 `--n_lip` (default: 1) 추가 arg 사용 가능. (1 -> LipConvNet-5에 해당.)
+- 01.06
+  - SES-T 방법 update. 모든 backbone에 사용가능.
+  - SESConv2dFT 사용시 `--linear` 미설정시 자동으로 `SESLinaerT` 사용.
 
 ## 명령어
 - 중요 arguments
@@ -29,10 +32,12 @@ python main.py --gpu 0 --exp_name Exp --conv SESConv2dFT --lam 1.7 --backbone Li
 
 - `--linear` 옵션 미 설정시(default: 'none'), 해당 conv에 맞는 미리 정의된 linear가 사용됨.
 
-'PlainConv': 'Linear', 'BCOP': 'BCOP', 'CayleyConv': 'CayleyLinear', 'SOC': 'SOC', 'ECO': 'ECO',
-'CayleyConvED': 'CayleyLinear', 'CayleyConvED2': 'CayleyLinear',
-'SESConv2dF': 'CayleyLinear', 'SESConv2dS': 'CayleyLinear', 
-'SESConv2dFT': 'SESLinear', 'SESConv2dST1x1': 'SESLinear',
+'PlainConv'    : 'Linear',         
+'BCOP' : 'BCOP', 'SOC' : 'SOC', 'ECO': 'ECO',
+'CayleyConv'   : 'CayleyLinear',
+'CayleyConvED' : 'CayleyLinear', 'CayleyConvED2' : 'CayleyLinear',
+'SESConv2dF'   : 'CayleyLinear', 'SESConv2dS'    : 'CayleyLinear', 
+'SESConv2dFT'  : 'SESLinearT',   'SESConv2dST1x1': 'SESLinearT',
 
 - argment 관련해서는 utils/option.py 참조
 
@@ -50,7 +55,5 @@ tensorboard --logdir exps --host 0.0.0.0 --port 6006
 
 ## Precaution & TODO List
 - Conv들의 Kernel size는 default 1.
-- SES 방법들은 LipConvNet에서 작동 안됨.
+- SES 방법들은 LipConvNet에서 작동 안됨. (안 쓸 예정이라 상관 X)
 - Plain, LipConvNet안됨. (stride, padding 때문에 resolution 크기 차이.)
-- SESLinearT, LipConvNet에서 안됨.
-
