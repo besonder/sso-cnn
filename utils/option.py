@@ -23,8 +23,8 @@ def get_args():
     parser.add_argument('--seed',             default=777,       type=int,   help='random seed')
     parser.add_argument('--num_workers',      default=4,         type=int,   help='number of workers in data loader')
 
-    parser.add_argument('--backbone',         default='ResNet9', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
-    parser.add_argument('--conv',             default='SESConv2dF', 
+    parser.add_argument('--backbone',         default='KWLarge', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
+    parser.add_argument('--conv',             default='SOC', 
                         choices=['PlainConv', 'BCOP', 'CayleyConv', 'SOC', 'ECO', 'CayleyConvED', 'CayleyConvED2', 
                                 'SESConv2dF', 'SESConv2dS', 'SESConv2dFT', 'SESConv2dST1x1'])
     parser.add_argument('--linear',           default='none', help='linear ftn. If linear is "none", then use the linear ftn corresponding to chosen conv',
