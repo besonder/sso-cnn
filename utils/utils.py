@@ -153,3 +153,16 @@ def do_seed(seed_num, cudnn_ok=True):
     if cudnn_ok:
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
+
+class PieceTriangleLR(torch.optim.lr_scheduler._LRScheduler):
+    def __init__(self, optimizer: torch.optim.Optimizer, epochs, num_batches, last_epoch=-1) -> None:
+        self.lr_max = optimizer.param_groups[0]['lr']
+        self.total_epochs = epochs
+        self.num_batches = num_batches
+        super().__init__(optimizer, last_epoch)
+
+    def get_lr(self):
+        get_lr_func = lambda t: np.interp([t], 
+                                            [0, self.total_epochs*2//5, self.total_epochs*4//5, self.total_epochs], 
+                                            [0, self.lr_max, self.lr_max/20.0, 0])
+        return get_lr_func(self._step_count/self.num_batches)

@@ -9,7 +9,7 @@ from .eco import ECOConv
 from .ed import CayleyConvED, CayleyConvED2
 from .ses import SESConv2dF, SESConv2dS, SESLinear
 from .ses_t import extract_SESLoss, SESConv2dFT, SESConv2dST1x1, SESLinearT
-from .utils import margin_loss, Normalize, PlainConv
+from .utils import margin_loss, Normalize, PlainConv, Linear
 from utils.option import Config
 
 def get_model(args: Config) -> nn.Sequential:
@@ -37,7 +37,7 @@ def get_model(args: Config) -> nn.Sequential:
         conv = PlainConv
 
     if args.linear == "Linear":
-        linear = nn.Linear
+        linear = Linear
     elif args.linear == "CayleyLinear":
         linear = CayleyLinear
     elif args.linear == 'SESLinear':

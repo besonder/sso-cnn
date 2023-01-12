@@ -14,6 +14,7 @@ def get_args():
     parser.add_argument('--loss',             default="margin",  type=str,   help='margin or ce', choices=['margin', 'ce'])
     parser.add_argument('--opt',              default="adam",    type=str,   help='adam or sgd', choices=['adam', 'sgd'])
     parser.add_argument('--lr_max',           default=0.01,      type=float)
+    parser.add_argument('--lr_schedule',      default="tri",     type=str,   help='piecewise triangle or multi step', choices=['tri', 'step'])
     parser.add_argument('--weight_decay',     default=0.0,       type=float, help='optimizer weight decay')
     parser.add_argument('--epochs',           default=100,       type=int,   help='epochs')
 
@@ -24,7 +25,7 @@ def get_args():
     parser.add_argument('--num_workers',      default=4,         type=int,   help='number of workers in data loader')
 
     parser.add_argument('--backbone',         default='KWLarge', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
-    parser.add_argument('--conv',             default='SOC', 
+    parser.add_argument('--conv',             default='SESConv2dFT', 
                         choices=['PlainConv', 'BCOP', 'CayleyConv', 'SOC', 'ECO', 'CayleyConvED', 'CayleyConvED2', 
                                 'SESConv2dF', 'SESConv2dS', 'SESConv2dFT', 'SESConv2dST1x1'])
     parser.add_argument('--linear',           default='none', help='linear ftn. If linear is "none", then use the linear ftn corresponding to chosen conv',
@@ -50,6 +51,7 @@ class Config():
         self.loss: str = opt.loss.lower()
         self.opt: str = opt.opt.lower()
         self.lr_max: float = opt.lr_max
+        self.lr_schedule: str = opt.lr_schedule.lower()
         self.weight_decay: float = opt.weight_decay
         self.epochs: int = opt.epochs
 

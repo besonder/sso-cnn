@@ -12,7 +12,7 @@ from model import get_model, margin_loss, extract_SESLoss
 from dataset.load_data import get_dataset
 from utils.evaluate import accuracy, rob_acc, empirical_local_lipschitzity, cert_stats
 from utils.option import get_option
-from utils.utils import do_seed, cal_num_parameters, get_log_meters
+from utils.utils import do_seed, cal_num_parameters, get_log_meters, PieceTriangleLR
 
 if __name__ == '__main__':
     start_main = time.time()
@@ -36,8 +36,8 @@ if __name__ == '__main__':
             sesmode = True
             break
 
-    # lr schedule: superconvergence
-    lr_schedule = lambda t: np.interp([t], [0, args.epochs*2//5, args.epochs*4//5, args.epochs], [0, args.lr_max, args.lr_max/20.0, 0])[0]
+    # load dataset
+    train_batches, test_batches = get_dataset(args)
 
     # optimizer: Adam
     if args.opt == "adam":
@@ -51,8 +51,13 @@ if __name__ == '__main__':
     elif args.loss == 'ce':
         criterion = nn.CrossEntropyLoss()
 
-    # load dataset
-    train_batches, test_batches = get_dataset(args)
+    # learning rate scheduler
+    if args.lr_schedule == 'tri':
+        lr_scheduler = PieceTriangleLR(opt, args.epochs, len(train_batches))
+    elif args.lr_schedule == 'step':
+        lr_steps = args.epochs * len(train_batches)
+        lr_scheduler = optim.lr_scheduler.MultiStepLR(opt, milestones=[lr_steps // 2, 
+            (3 * lr_steps) // 4], gamma=0.1)
 
     # average meters
     progress = get_log_meters(args.epochs, prefix=f'[{args.backbone}] EPOCH')
@@ -74,11 +79,11 @@ if __name__ == '__main__':
 
     for epoch in range(args.epochs):
         start = time.time()
+        model.train()
         for i, batch in enumerate(train_batches):
             X, y = batch['input'], batch['target']
             
-            lr = lr_schedule(epoch + (i + 1)/len(train_batches))
-            opt.param_groups[0].update(lr=lr)
+            lr = opt.param_groups[0]['lr']
             writer.add_scalar("lr", lr, global_step=global_step)
             
             output = model(X)
@@ -90,8 +95,10 @@ if __name__ == '__main__':
             
             opt.zero_grad()
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), 1e-5)
+            if sesmode:
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 1e-5)
             opt.step()
+            lr_scheduler.step()
             
             correct = (output.max(1)[1] == y).sum().item()
             progress.update('loss', loss.item(), y.size(0))

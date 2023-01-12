@@ -12,10 +12,10 @@ def extract_SESLoss(model):
     return SESLoss
 
 class SESConv2dFT(StridedConv, nn.Conv2d):
-    def __init__(self, in_channels, out_channels, kernel_size, stride=1, bias=True):
+    def __init__(self, in_channels, out_channels, kernel_size=1, stride=1, bias=True, **kargs):
         if stride != 1 and stride != 2:
             raise Exception("Only 1 or 2 are allowed for stride")
-        super().__init__(in_channels, out_channels, kernel_size, stride=stride, bias=bias)
+        super().__init__(in_channels, out_channels, kernel_size, stride=stride, bias=bias, **kargs)
         self.cin = in_channels
         self.cout = out_channels
         self.stride = stride
@@ -73,7 +73,7 @@ class SESConv2dFT(StridedConv, nn.Conv2d):
             # self.L = self.xcin*RowLoss + RowAngLoss
             yfft = (Hfft/RowNorm @ xfft).reshape(n, n // 2 + 1, self.cout, batches)
         # yfft = (Hfft/torch.norm(Hfft, dim=(1, 2), keepdim=True)*np.sqrt(self.xcin) @ xfft).reshape(n, n // 2 + 1, self.cout, batches)
-        y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1))
+        y = torch.fft.irfft2(yfft.permute(3, 2, 0, 1), s=x.shape[2:])
         if self.bias is not None:
             y += self.bias[:, None, None]          
         return y

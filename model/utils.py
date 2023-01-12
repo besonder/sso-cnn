@@ -52,3 +52,11 @@ class PlainConv(nn.Conv2d):
             in_channels, out_channels, kernel_size, stride, padding, 
             dilation, groups, bias, padding_mode, device, dtype
         )
+
+class Linear(nn.Linear):
+    def __init__(self, in_features: int, out_features: int, bias: bool = True, device=None, dtype=None) -> None:
+        super().__init__(in_features, out_features, bias, device, dtype)
+        
+    def forward(self, input: Tensor) -> Tensor:
+        input = input.flatten(start_dim=1)
+        return super().forward(input)

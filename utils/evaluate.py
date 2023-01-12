@@ -2,14 +2,15 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 
+@torch.no_grad()
 def accuracy(model, batches):
-    with torch.no_grad():
-        n, acc = 0, 0
-        for batch in batches:
-            X, y = batch['input'], batch['target']
-            output = model(X)
-            acc += (output.max(1)[1] == y).sum().item()
-            n += y.size(0)
+    model.eval()
+    n, acc = 0, 0
+    for batch in batches:
+        X, y = batch['input'], batch['target']
+        output = model(X)
+        acc += (output.max(1)[1] == y).sum().item()
+        n += y.size(0)
     return acc / n
 
 # Certifiably robust accuracies from Lipschitz-Margin Training
@@ -22,6 +23,7 @@ def cert_stats(model, batches, cert, full=False):
     insc_wrong = 0.
     n = 0
 
+    model.eval()
     for batch in batches:
         X, y = batch['input'], batch['target']
         yhat = model(X)
