@@ -35,14 +35,15 @@ def net_tune(config):
 if __name__ == '__main__':
     ###################
     # PARAMETER SETTING
-    NUM_SAMPLES = 10
-    CPU_RESOURCE = 4
-    GPU_RESOURCE = 0.5
+    NUM_SAMPLES = 10        # total trial number
+    CPU_RESOURCE = 4        # number of CPU cores per trial
+    GPU_RESOURCE = 0.5      # number of GPU cores per trial
+    
     config = {
         "lam": tune.sample_from(lambda _: 0.1*float(np.random.randint(10,50))),
         "scale": tune.sample_from(lambda _: np.random.randint(2,6)),
         "gpu": tune.choice(['0']),
-        # "gpu": tune.choice(['0','1']),
+        # "gpu": tune.choice(['0','1']),    # For multi gpus
     }
     ###################
 
