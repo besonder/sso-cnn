@@ -22,20 +22,21 @@ def get_args():
     parser.add_argument('--dataset',          default='cifar10', type=str,   help='cifar10 or cifar100', choices=['cifar10', 'cifar100'])
 
     parser.add_argument('--seed',             default=777,       type=int,   help='random seed')
-    parser.add_argument('--num_workers',      default=4,         type=int,   help='number of workers in data loader')
+    parser.add_argument('--num_workers',      default=0,         type=int,   help='number of workers in data loader')
 
-    parser.add_argument('--backbone',         default='KWLarge', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
-    parser.add_argument('--conv',             default='SESConv2dFT', 
-                        choices=['PlainConv', 'BCOP', 'CayleyConv', 'SOC', 'ECO', 'CayleyConvED', 'CayleyConvED2', 
-                                'SESConv2dF', 'SESConv2dS', 'SESConv2dFT', 'SESConv2dST1x1'])
+    parser.add_argument('--backbone',         default='ResNet9', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
+    parser.add_argument('--conv',             default='SESConv', 
+                        choices=['PlainConv', 'BCOP', 'CayleyConv', 'SOC', 'ECO', 
+                                'SESConv', 'SESConv1x1'])
     parser.add_argument('--linear',           default='none', help='linear ftn. If linear is "none", then use the linear ftn corresponding to chosen conv',
-                        choices=['none', 'Linear', 'BjorckLinear', 'CayleyLinear', 'SESLinear', 'SESLinearT'])
+                        choices=['none', 'Linear', 'BjorckLinear', 'CayleyLinear', 'SESLinear'])
     parser.add_argument('--eps',              default=36.0,      type=float)
 
     args, unknown_args = parser.parse_known_args()
 
     if 'SES' in args.conv:
         parser.add_argument('--lam',         default=1.7,  type=float, help='the lambda of additional loss')
+        parser.add_argument('--scale',       default=4.0,  type=float, help='the scale of loss in SESLinear')
         args, unknown_args = parser.parse_known_args()
     if args.backbone == 'LipConvNet':
         parser.add_argument('--n_lip',       default=1,    type=int,   help='the number of blocks in LipConvNet. 1, 2, 3, 4, 5, 6, 7, 8')
@@ -68,6 +69,7 @@ class Config():
 
         if 'SES' in self.conv:
             self.lam = opt.lam
+            self.scale = opt.scale
         if self.backbone == 'LipConvNet':
             self.n_lip = opt.n_lip
 
@@ -77,9 +79,7 @@ class Config():
             'PlainConv'    : 'Linear',         
             'BCOP' : 'BCOP', 'SOC' : 'SOC', 'ECO': 'ECO',
             'CayleyConv'   : 'CayleyLinear',
-            'CayleyConvED' : 'CayleyLinear', 'CayleyConvED2' : 'CayleyLinear',
-            'SESConv2dF'   : 'CayleyLinear', 'SESConv2dS'    : 'CayleyLinear', 
-            'SESConv2dFT'  : 'SESLinearT',   'SESConv2dST1x1': 'SESLinearT',
+            'SESConv'  : 'SESLinear',   'SESConv1x1': 'SESLinear',
         }
 
         if self.linear == 'none':
@@ -97,7 +97,7 @@ class Config():
         }
 
         if "SES" in self.conv:
-            self.hyper_param.update({'lam': 'Lam'})
+            self.hyper_param.update({'lam': 'Lam', 'scale': 'Scale'})
 
         self.hyper_param.update({
             'loss' : 'loss_',

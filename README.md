@@ -12,6 +12,10 @@
 - 01.06
   - SES-T 방법 update. 모든 backbone에 사용가능.
   - SESConv2dFT 사용시 `--linear` 미설정시 자동으로 `SESLinaerT` 사용.
+- 01.12
+  - Update SES. ses_t.py -> ses.py
+  - `--scale` 추가. `SESLinear` 안에서 scale을 곱하는 것이 아니라 extract_SESLoss 에서 scale 곱하도록 수정.
+  - PlainConv LipConvNet에서 사용가능.
 
 ## 명령어
 - 중요 arguments
@@ -24,9 +28,9 @@ python main.py --gpu 0 --exp_name Exp --conv PlainConv --backbone KWLarge --seed
 python main.py --gpu 0 --exp_name Exp --conv CayleyConv --backbone ResNet9 --seed 1
 
 ## SES
-python main.py --gpu 0 --exp_name Exp --conv SESConv2dFT --linear CayleyLinear --backbone ResNet9 --seed 1
-## SESConvFT + SESLinear, LipConvNet-10
-python main.py --gpu 0 --exp_name Exp --conv SESConv2dFT --lam 1.7 --backbone LipConvNet --n_lip 2 --seed 1
+python main.py --gpu 0 --exp_name Exp --conv SESConv --backbone ResNet9 --seed 1
+## SES + CayleyLinear, LipConvNet-10
+python main.py --gpu 0 --exp_name Exp --conv SESConv --linear CayleyLinear --lam 1.7 --backbone LipConvNet --n_lip 2 --seed 1
 
 ```
 
@@ -35,9 +39,7 @@ python main.py --gpu 0 --exp_name Exp --conv SESConv2dFT --lam 1.7 --backbone Li
 'PlainConv'    : 'Linear',         
 'BCOP' : 'BCOP', 'SOC' : 'SOC', 'ECO': 'ECO',
 'CayleyConv'   : 'CayleyLinear',
-'CayleyConvED' : 'CayleyLinear', 'CayleyConvED2' : 'CayleyLinear',
-'SESConv2dF'   : 'CayleyLinear', 'SESConv2dS'    : 'CayleyLinear', 
-'SESConv2dFT'  : 'SESLinearT',   'SESConv2dST1x1': 'SESLinearT',
+'SESConv'      : 'SESLinear', 'SESConv1x1'    : 'SESLinear', 
 
 - argment 관련해서는 utils/option.py 참조
 
@@ -55,5 +57,3 @@ tensorboard --logdir exps --host 0.0.0.0 --port 6006
 
 ## Precaution & TODO List
 - Conv들의 Kernel size는 default 1.
-- SES 방법들은 LipConvNet에서 작동 안됨. (안 쓸 예정이라 상관 X)
-- Plain, LipConvNet안됨. (stride, padding 때문에 resolution 크기 차이.)

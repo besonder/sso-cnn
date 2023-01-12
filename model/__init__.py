@@ -6,27 +6,17 @@ from .bcop import BCOPConv
 from .cayley import CayleyConv, CayleyLinear
 from .soc import SOCConv
 from .eco import ECOConv
-from .ed import CayleyConvED, CayleyConvED2
-from .ses import SESConv2dF, SESConv2dS, SESLinear
-from .ses_t import extract_SESLoss, SESConv2dFT, SESConv2dST1x1, SESLinearT
-from .utils import margin_loss, Normalize, PlainConv, Linear
+from .ses import SESConv, SESConv1x1, SESLinear
+from .utils import margin_loss, extract_SESLoss, Normalize, PlainConv, Linear
 from utils.option import Config
 
 def get_model(args: Config) -> nn.Sequential:
     if args.conv == "CayleyConv":
-        conv = CayleyConv
-    elif args.conv == "CayleyConvED":
-        conv = CayleyConvED
-    elif args.conv == "CayleyConvED2":
-        conv = CayleyConvED2
-    elif args.conv == "SESConv2dF":
-        conv = SESConv2dF
-    elif args.conv == "SESConv2dS":
-        conv = SESConv2dS       
-    elif args.conv == "SESConv2dFT":
-        conv = SESConv2dFT
-    elif args.conv == "SESConv2dST1x1":
-        conv = SESConv2dST1x1
+        conv = CayleyConv     
+    elif args.conv == "SESConv":
+        conv = SESConv
+    elif args.conv == "SESConv1x1":
+        conv = SESConv1x1
     elif args.conv == "ECO":
         conv = ECOConv
     elif args.conv == "BCOP":
@@ -42,8 +32,6 @@ def get_model(args: Config) -> nn.Sequential:
         linear = CayleyLinear
     elif args.linear == 'SESLinear':
         linear = SESLinear
-    elif args.linear == "SESLinearT":
-        linear = SESLinearT
     else:
         assert args.conv == args.linear, "conv and linear should be same."
         linear = conv

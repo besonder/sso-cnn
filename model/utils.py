@@ -15,6 +15,17 @@ def margin_loss(y_pred: Tensor, y: Tensor, eps: float, p: float, l_constant: flo
     margin = eps * get_margin_factor(p) * l_constant
     return F.multi_margin_loss(y_pred, y, margin=margin, p=order)
 
+def extract_SESLoss(model, scale=2.0):
+    loss = 0
+    for _, layer in model.named_modules():
+        if hasattr(layer, 'SESLoss'):
+            if "Linear" in layer.__class__.__name__ or "1x1" in layer.__class__.__name__:
+                loss += scale * layer.SESLoss
+            else:
+                loss += layer.SESLoss
+    return loss
+
+
 ## Utils
 # TODO: max, min / min, max ?
 class GroupSort(nn.Module):

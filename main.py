@@ -1,5 +1,4 @@
 import os, sys
-import numpy as np
 import time
 import warnings
 warnings.filterwarnings(action='ignore')
@@ -65,18 +64,6 @@ if __name__ == '__main__':
     writer = SummaryWriter(log_dir=args.log_dir)
     global_step = 0
 
-    # # initialize H
-    # if sesmode:
-    #     opt1 = optim.Adam(model.parameters(), lr=args.lr_max, weight_decay=args.weight_decay)
-    #     for i in range(100):
-    #         device = torch.device("cuda")
-    #         x = torch.randn(10, 3, 32, 32).to(device)
-    #         y = model(x)
-    #         sesloss = extract_SESLoss(model)
-    #         opt1.zero_grad()
-    #         sesloss.backward()
-    #         opt1.step()        
-
     for epoch in range(args.epochs):
         start = time.time()
         model.train()
@@ -91,12 +78,12 @@ if __name__ == '__main__':
             
             # SESLoss
             if sesmode:
-                loss += args.lam *extract_SESLoss(model)
+                loss += args.lam *extract_SESLoss(model, scale=args.scale)
             
             opt.zero_grad()
             loss.backward()
             if sesmode:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 1e-5)
+                torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             opt.step()
             lr_scheduler.step()
             
