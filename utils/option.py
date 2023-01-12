@@ -149,5 +149,5 @@ def get_option() -> Config:
     args, unknown_args = get_args()
     if len(unknown_args) and unknown_args[0] == '-f' and 'jupyter' in unknown_args[1]:
         unknown_args = unknown_args[2:]
-    assert len(unknown_args) == 0, f"Invalid Arguments: {str(unknown_args)}"
+    # assert len(unknown_args) == 0, f"Invalid Arguments: {str(unknown_args)}"
     return Config(args)

@@ -12,12 +12,11 @@ from dataset.load_data import get_dataset
 from utils.evaluate import accuracy, rob_acc, empirical_local_lipschitzity, cert_stats
 from utils.option import get_option
 from utils.utils import do_seed, cal_num_parameters, get_log_meters, PieceTriangleLR
+from ray import tune
 
-if __name__ == '__main__':
+def main(args, hyperparam_tune=False):
     start_main = time.time()
-    args = get_option()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_id)
-
     logger = args.logger
     logger(' '.join(sys.argv))
     do_seed(args.seed)
@@ -102,6 +101,8 @@ if __name__ == '__main__':
         writer.add_scalar("train/loss", progress['loss'].avg, global_step=epoch+1)
         writer.add_scalar("train/acc", progress['train_acc'].avg, global_step=epoch+1)
         writer.add_scalar("test/acc", test_acc, global_step=epoch+1)
+        if hyperparam_tune:
+            tune.report(train_loss=progress['loss'].avg, train_acc=progress['train_acc'].avg, test_acc=test_acc)
         progress.reset()
 
         if (epoch+1) % 10 == 0 or (epoch+1) == args.epochs:
@@ -125,3 +126,8 @@ if __name__ == '__main__':
     }, os.path.join(args.log_dir, "model.pth"))
 
     logger(f"Elapsed Time: {(time.time() - start_main)/60:.1f} Min")
+
+
+if __name__ == '__main__':
+    args = get_option()
+    main(args=args)
