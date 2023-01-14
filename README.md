@@ -16,7 +16,10 @@
   - Update SES. ses_t.py -> ses.py
   - `--scale` 추가. `SESLinear` 안에서 scale을 곱하는 것이 아니라 extract_SESLoss 에서 scale 곱하도록 수정.
   - PlainConv LipConvNet에서 사용가능.
-
+- 01.14
+  - Hyper Param Tunning. `python hyperparam_ray_tune.py`
+  - main_for_tune.py 추가.
+  - Default Loss: Margin -> CE.
 ## 명령어
 - 중요 arguments
 

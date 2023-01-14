@@ -11,7 +11,7 @@ def get_args():
     parser.add_argument('-e', '--exp_name',   default='',                    help='experiment name')
     parser.add_argument('--gpu',              default='0',                   help='gpu id')
     parser.add_argument('--batch_size',       default=256,       type=int,   help='mini-batch size')
-    parser.add_argument('--loss',             default="margin",  type=str,   help='margin or ce', choices=['margin', 'ce'])
+    parser.add_argument('--loss',             default="ce",      type=str,   help='margin or ce', choices=['margin', 'ce'])
     parser.add_argument('--opt',              default="adam",    type=str,   help='adam or sgd', choices=['adam', 'sgd'])
     parser.add_argument('--lr_max',           default=0.01,      type=float)
     parser.add_argument('--lr_schedule',      default="tri",     type=str,   help='piecewise triangle or multi step', choices=['tri', 'step'])
@@ -138,7 +138,9 @@ class Config():
         option_path = os.path.join(self.save_dir, self.exp_name, "options.json")
 
         with open(option_path, 'w') as fp:
-            json.dump(self.__dict__, fp, indent=4, sort_keys=True)
+            save_dict = self.__dict__.copy()
+            del save_dict['hyper_param']
+            json.dump(save_dict, fp, indent=4, sort_keys=True)
 
         self.logger = Logger(os.path.join(log_dir, "log.txt"))
         self.logger.log_time()
@@ -147,7 +149,7 @@ class Config():
 
 def get_option() -> Config:
     args, unknown_args = get_args()
-    if len(unknown_args) and unknown_args[0] == '-f' and 'jupyter' in unknown_args[1]:
-        unknown_args = unknown_args[2:]
+    # if len(unknown_args) and unknown_args[0] == '-f' and 'jupyter' in unknown_args[1]:
+    #     unknown_args = unknown_args[2:]
     # assert len(unknown_args) == 0, f"Invalid Arguments: {str(unknown_args)}"
     return Config(args)

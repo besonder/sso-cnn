@@ -10,10 +10,11 @@ from torch.utils.tensorboard import SummaryWriter
 from model import get_model, margin_loss, extract_SESLoss
 from dataset.load_data import get_dataset
 from utils.evaluate import accuracy, rob_acc, empirical_local_lipschitzity, cert_stats
-from utils.option import get_option, Config
+from utils.option import get_option
 from utils.utils import do_seed, cal_num_parameters, get_log_meters, PieceTriangleLR
+from ray import tune
 
-def main(args: Config):
+def main_for_tune(args):
     start_main = time.time()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_id)
     logger = args.logger
@@ -76,9 +77,7 @@ def main(args: Config):
             
             # SESLoss
             if sesmode:
-                loss_ses = extract_SESLoss(model, scale=args.scale)
-                loss += args.lam * loss_ses
-                writer.add_scalar("train/loss_ses", loss_ses.item(), global_step=global_step)
+                loss += args.lam *extract_SESLoss(model, scale=args.scale)
             
             opt.zero_grad()
             loss.backward()
@@ -102,6 +101,9 @@ def main(args: Config):
         writer.add_scalar("train/loss", progress['loss'].avg, global_step=epoch+1)
         writer.add_scalar("train/acc", progress['train_acc'].avg, global_step=epoch+1)
         writer.add_scalar("test/acc", test_acc, global_step=epoch+1)
+        
+        ### Report for Hyper-Parmater Tunning
+        tune.report(train_loss=progress['loss'].avg, train_acc=progress['train_acc'].avg, test_acc=test_acc)
         progress.reset()
 
         if (epoch+1) % 10 == 0 or (epoch+1) == args.epochs:
@@ -129,4 +131,4 @@ def main(args: Config):
 
 if __name__ == '__main__':
     args = get_option()
-    main(args=args)
+    main_for_tune(args=args)

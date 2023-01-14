@@ -18,7 +18,7 @@ from ray import tune, air
 from ray.tune import CLIReporter
 from ray.tune.schedulers import ASHAScheduler
 from ray.tune.search.bayesopt import BayesOptSearch
-from main import main
+from main_for_tune import main_for_tune
 from functools import partial
 import warnings   
 
@@ -30,7 +30,7 @@ def net_tune(config):
         args.gpu_id = config["gpu"]
     else:
         warnings.warn("This tuning only works for SES. Set args conv to 'SES'.")
-    main(args, hyperparam_tune=True)
+    main_for_tune(args)
 
 if __name__ == '__main__':
     ###################
@@ -42,8 +42,8 @@ if __name__ == '__main__':
     config = {
         "lam": tune.sample_from(lambda _: 0.1*float(np.random.randint(10,50))),
         "scale": tune.sample_from(lambda _: np.random.randint(2,6)),
-        "gpu": tune.choice(['0']),
-        # "gpu": tune.choice(['0','1']),    # For multi gpus
+        # "gpu": tune.choice(['0']),
+        "gpu": tune.choice(['4','5', '6', '7']),    # For multi gpus
     }
     ###################
 
