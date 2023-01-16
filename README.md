@@ -20,6 +20,9 @@
   - Hyper Param Tunning. `python hyperparam_ray_tune.py`
   - main_for_tune.py 추가.
   - Default Loss: Margin -> CE.
+- 01.16
+  - Gradien Clipping 제거.
+  - `--lam 2.0`, `--scale 2.0` 이 최적. Default 설정.
 ## 명령어
 - 중요 arguments
 

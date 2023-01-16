@@ -4,6 +4,7 @@ from torch.nn import functional as F
 
 ############################################################
 # From: https://github.com/ColinQiyangLi/LConvNet
+# Modified
 ############################################################
 
 def get_margin_factor(p):

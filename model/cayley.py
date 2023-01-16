@@ -1,3 +1,7 @@
+"""
+From https://github.com/locuslab/orthogonal-convolutions
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

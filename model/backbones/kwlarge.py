@@ -1,3 +1,7 @@
+"""
+From https://github.com/locuslab/orthogonal-convolutions
+"""
+
 from torch import nn
 
 from ..cayley import CayleyConv, CayleyLinear

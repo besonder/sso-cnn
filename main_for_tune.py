@@ -10,11 +10,11 @@ from torch.utils.tensorboard import SummaryWriter
 from model import get_model, margin_loss, extract_SESLoss
 from dataset.load_data import get_dataset
 from utils.evaluate import accuracy, rob_acc, empirical_local_lipschitzity, cert_stats
-from utils.option import get_option
+from utils.option import get_option, Config
 from utils.utils import do_seed, cal_num_parameters, get_log_meters, PieceTriangleLR
 from ray import tune
 
-def main_for_tune(args):
+def main_for_tune(args: Config):
     start_main = time.time()
     os.environ['CUDA_VISIBLE_DEVICES'] = str(args.gpu_id)
     logger = args.logger
@@ -63,6 +63,8 @@ def main_for_tune(args):
     writer = SummaryWriter(log_dir=args.log_dir)
     global_step = 0
 
+    cert_right = 0.
+    val_rob_acc = 0.
     for epoch in range(args.epochs):
         start = time.time()
         model.train()
@@ -81,8 +83,6 @@ def main_for_tune(args):
             
             opt.zero_grad()
             loss.backward()
-            if sesmode:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             opt.step()
             lr_scheduler.step()
             
@@ -101,23 +101,23 @@ def main_for_tune(args):
         writer.add_scalar("train/loss", progress['loss'].avg, global_step=epoch+1)
         writer.add_scalar("train/acc", progress['train_acc'].avg, global_step=epoch+1)
         writer.add_scalar("test/acc", test_acc, global_step=epoch+1)
-        
-        ### Report for Hyper-Parmater Tunning
-        tune.report(train_loss=progress['loss'].avg, train_acc=progress['train_acc'].avg, test_acc=test_acc)
-        progress.reset()
 
         if (epoch+1) % 10 == 0 or (epoch+1) == args.epochs:
             l_emp = empirical_local_lipschitzity(model, test_batches, early_stop=True).item()
             logger(f"[{args.backbone}] EPOCH {epoch+1} : --- Empirical Lipschitzity: {l_emp}")
             writer.add_scalar("Lipschitz", l_emp, global_step=epoch+1)
-
-    cert_right, cert_wrong, insc_right, insc_wrong = cert_stats(model, test_batches, eps * 2**0.5, full=True)
-    logger(f"[{args.backbone}] (PROVABLE) Certifiably Robust (eps: {eps:.4f}): {cert_right:.4f}, " + 
-            f"Cert. Wrong: {cert_wrong:.4f}, Insc. Right: {insc_right:.4f}, Insc. Wrong: {insc_wrong:.4f}"
-    )
-    
-    val_rob_acc = rob_acc(test_batches, model, eps, alpha, opt, False, 10, 1, linf_proj=False, l2_grad_update=True)[0]
-    logger(f"[{args.backbone}] (EMPIRICAL) Robust accuracy (eps: {eps:.4f}): {val_rob_acc:.4f}")
+        if (epoch+1) % 10 == 0 or (epoch+1) == args.epochs:
+            cert_right, cert_wrong, insc_right, insc_wrong = cert_stats(model, test_batches, eps * 2**0.5, full=True)
+            logger(f"[{args.backbone}] (PROVABLE) Certifiably Robust (eps: {eps:.4f}): {cert_right:.4f}, " + 
+                    f"Cert. Wrong: {cert_wrong:.4f}, Insc. Right: {insc_right:.4f}, Insc. Wrong: {insc_wrong:.4f}"
+            )
+        if (epoch+1) % 10 == 0 or (epoch+1) == args.epochs:
+            val_rob_acc = rob_acc(test_batches, model, eps, alpha, opt, False, 10, 1, linf_proj=False, l2_grad_update=True)[0]
+            logger(f"[{args.backbone}] (EMPIRICAL) Robust accuracy (eps: {eps:.4f}): {val_rob_acc:.4f}")
+        
+        ### Report for Hyper-Parmater Tunning
+        tune.report(train_loss=progress['loss'].avg, train_acc=progress['train_acc'].avg, test_acc=test_acc, cert_right=cert_right, val_rob_acc=val_rob_acc)
+        progress.reset()
     logger.log_time()
 
     torch.save({

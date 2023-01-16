@@ -15,6 +15,7 @@ data
 exps
 _old
 ray_results
+report
 
 analysis.ipynb
 result.ipynb

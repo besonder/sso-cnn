@@ -82,8 +82,6 @@ def main(args: Config):
             
             opt.zero_grad()
             loss.backward()
-            if sesmode:
-                torch.nn.utils.clip_grad_norm_(model.parameters(), 1)
             opt.step()
             lr_scheduler.step()
             

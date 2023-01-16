@@ -1,3 +1,4 @@
+# Based on https://github.com/davidcpage/cifar10-fast
 from .core import *
 from .torch_backend import *
 from utils.option import Config

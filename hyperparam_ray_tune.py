@@ -43,7 +43,7 @@ if __name__ == '__main__':
         "lam": tune.sample_from(lambda _: 0.1*float(np.random.randint(10,50))),
         "scale": tune.sample_from(lambda _: np.random.randint(2,6)),
         # "gpu": tune.choice(['0']),
-        "gpu": tune.choice(['4','5', '6', '7']),    # For multi gpus
+        "gpu": tune.choice(['4','5','6','7']),    # For multi gpus
     }
     ###################
 
@@ -51,7 +51,8 @@ if __name__ == '__main__':
         trainer_resources={"CPU": CPU_RESOURCE, "GPU": GPU_RESOURCE},
         placement_strategy="SPREAD"
     )
-    reporter = CLIReporter(metric="test_acc", mode="max", sort_by_metric=True)
+    # reporter = CLIReporter(metric="test_acc", mode="max", sort_by_metric=True)
+    reporter = CLIReporter(metric="val_rob_acc", metric_columns=["test_acc", "cert_right", "val_rob_acc"], mode="max", sort_by_metric=True)
     trainable_with_resources = tune.with_resources(net_tune, resources=scaling_config)
     tuner = tune.Tuner(
         trainable_with_resources, 

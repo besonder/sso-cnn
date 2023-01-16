@@ -21,7 +21,7 @@ def get_args():
     parser.add_argument('--save_dir',         default='./exps',  type=str,   help='save directory for checkpoint')
     parser.add_argument('--dataset',          default='cifar10', type=str,   help='cifar10 or cifar100', choices=['cifar10', 'cifar100'])
 
-    parser.add_argument('--seed',             default=777,       type=int,   help='random seed')
+    parser.add_argument('--seed',             default=1,         type=int,   help='random seed')
     parser.add_argument('--num_workers',      default=0,         type=int,   help='number of workers in data loader')
 
     parser.add_argument('--backbone',         default='ResNet9', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
@@ -35,8 +35,8 @@ def get_args():
     args, unknown_args = parser.parse_known_args()
 
     if 'SES' in args.conv:
-        parser.add_argument('--lam',         default=1.7,  type=float, help='the lambda of additional loss')
-        parser.add_argument('--scale',       default=4.0,  type=float, help='the scale of loss in SESLinear')
+        parser.add_argument('--lam',         default=2.0,  type=float, help='the lambda of additional loss')
+        parser.add_argument('--scale',       default=2.0,  type=float, help='the scale of loss in SESLinear')
         args, unknown_args = parser.parse_known_args()
     if args.backbone == 'LipConvNet':
         parser.add_argument('--n_lip',       default=1,    type=int,   help='the number of blocks in LipConvNet. 1, 2, 3, 4, 5, 6, 7, 8')
