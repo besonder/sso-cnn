@@ -23,6 +23,11 @@
 - 01.16
   - Gradien Clipping 제거.
   - `--lam 2.0`, `--scale 2.0` 이 최적. Default 설정.
+- 01.25
+  - `--lam 10.0`, `--scale 2.0` 이 최적. Default 설정.
+  - LipConvNet-n에서 n >=30 -> lr 0.0001. 그외 경우에는 lr 0.001.
+  - `ses_new.py` 추가. 더 간결하게.
+  
 ## 명령어
 - 중요 arguments
 

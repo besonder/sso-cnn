@@ -40,8 +40,10 @@ if __name__ == '__main__':
     GPU_RESOURCE = 0.5      # number of GPU cores per trial
     
     config = {
-        "lam": tune.sample_from(lambda _: 0.1*float(np.random.randint(10,50))),
-        "scale": tune.sample_from(lambda _: np.random.randint(2,6)),
+        # "lam": tune.sample_from(lambda _: 0.1*float(np.random.randint(10,50))),
+        "lam": tune.sample_from(lambda _: 10*np.random.randint(1, 10+1)),
+        # "scale": tune.sample_from(lambda _: np.random.randint(2,6)),
+        "scale": tune.sample_from(lambda _: np.random.randint(1, 10+1)),
         # "gpu": tune.choice(['0']),
         "gpu": tune.choice(['4','5','6','7']),    # For multi gpus
     }

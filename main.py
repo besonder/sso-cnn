@@ -94,7 +94,7 @@ def main(args: Config):
         # test
         test_acc = accuracy(model, test_batches)
         # log
-        msg = f"\tTest Acc {test_acc:.4f}\tlr {lr:.4f}\tTime {time.time() - start:.1f}"
+        msg = f"\tTest Acc {test_acc:.4f}\tlr {lr:.6f}\tTime {time.time() - start:.1f}"
         logger(progress.display(epoch+1, isPrint=False) + msg)
         # write on Tensorboard
         writer.add_scalar("train/loss", progress['loss'].avg, global_step=epoch+1)

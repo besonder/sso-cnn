@@ -4,13 +4,15 @@ import torch.nn.functional as F
 from torch import Tensor, nn
 from .cayley import StridedConv
 
-
-def extract_SESLoss(model):
-    SESLoss = 0
+def extract_SESLoss(model: nn.Module, scale=2.0) -> Tensor:
+    loss_ses = 0
     for _, layer in model.named_modules():
-        if all([key in layer.__class__.__name__ for key in ['SES', 'T']]):
-            SESLoss += layer.L
-    return SESLoss
+        if hasattr(layer, 'SESLoss'):
+            if "Linear" in layer.__class__.__name__ or "1x1" in layer.__class__.__name__:
+                loss_ses += scale * layer.SESLoss
+            else:
+                loss_ses += layer.SESLoss
+    return loss_ses
 
 class SESConv(StridedConv, nn.Conv2d):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, bias=True, **kwargs):

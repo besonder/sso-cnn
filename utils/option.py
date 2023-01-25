@@ -13,7 +13,7 @@ def get_args():
     parser.add_argument('--batch_size',       default=256,       type=int,   help='mini-batch size')
     parser.add_argument('--loss',             default="ce",      type=str,   help='margin or ce', choices=['margin', 'ce'])
     parser.add_argument('--opt',              default="adam",    type=str,   help='adam or sgd', choices=['adam', 'sgd'])
-    parser.add_argument('--lr_max',           default=0.01,      type=float)
+    parser.add_argument('--lr_max',           default=0.001,      type=float)
     parser.add_argument('--lr_schedule',      default="tri",     type=str,   help='piecewise triangle or multi step', choices=['tri', 'step'])
     parser.add_argument('--weight_decay',     default=0.0,       type=float, help='optimizer weight decay')
     parser.add_argument('--epochs',           default=100,       type=int,   help='epochs')
@@ -24,7 +24,7 @@ def get_args():
     parser.add_argument('--seed',             default=1,         type=int,   help='random seed')
     parser.add_argument('--num_workers',      default=0,         type=int,   help='number of workers in data loader')
 
-    parser.add_argument('--backbone',         default='ResNet9', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
+    parser.add_argument('--backbone',         default='LipConvNet', choices=['KWLarge', 'ResNet9', 'WideResNet', 'LipConvNet'])
     parser.add_argument('--conv',             default='SESConv', 
                         choices=['PlainConv', 'BCOP', 'CayleyConv', 'SOC', 'ECO', 
                                 'SESConv', 'SESConv1x1'])
@@ -35,7 +35,7 @@ def get_args():
     args, unknown_args = parser.parse_known_args()
 
     if 'SES' in args.conv:
-        parser.add_argument('--lam',         default=2.0,  type=float, help='the lambda of additional loss')
+        parser.add_argument('--lam',         default=10.0, type=float, help='the lambda of additional loss')
         parser.add_argument('--scale',       default=2.0,  type=float, help='the scale of loss in SESLinear')
         args, unknown_args = parser.parse_known_args()
     if args.backbone == 'LipConvNet':
@@ -88,6 +88,8 @@ class Config():
         self.num_classes = {'cifar10': 10, 'cifar100': 100}[self.dataset]
         if self.backbone == 'LipConvNet':
             self.backbone += f"_N{self.n_lip*5}"
+            if self.n_lip > 4:
+                self.lr_max = 0.0001
 
         self.hyper_param = {
             'dataset': '',
