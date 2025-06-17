@@ -1,4 +1,28 @@
-# Spherical Semi-Orthogonal CNN
+# Spherical Semi-Orthogonal Convolution
+
+> A PyTorch-based implementation of **Spherical Semi-Orthogonal (SSO) Convolutional Layers**, designed for robustness and redundancy reduction in deep neural networks.  
+> This work is based on our ICML submission, which introduces a novel transformation inspired by geometric principles in the real projective space.
+
+---
+
+## Overview
+
+Convolutional layers with orthogonal constraints have been widely studied to enhance adversarial robustness and mitigate feature redundancy.  
+While **semi-orthogonal layers** serve as a practical alternative when weight matrices are non-square, they fall short in effectively reducing covariance among features.
+
+In this project, we introduce a new transformation called **Spherical Semi-Orthogonal (SSO)**, which extends semi-orthogonality by promoting **even distribution of layer weights in the real projective space**.  
+We demonstrate its superior performance over existing methods such as **Cayley**, **SOC**, and **ECO** in both **certified robustness** and **feature diversity**.
+
+---
+
+## Key Contributions
+
+- **Theoretical Foundation**: We define SSO transformations using geometric properties of real projective spaces.
+- **SSO Convolutional Layers**: Implementations in both spatial and frequency domains using 2D DFT.
+- **Redundancy Metrics**: New energy-based and correlation-based metrics to evaluate feature overlap.
+- **Empirical Gains**: Demonstrated improvements in standard accuracy and robustness across multiple datasets and architectures.
+
+---
 
 ## Key Updates
 - Jan 5, 2022
