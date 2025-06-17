@@ -24,6 +24,12 @@ We demonstrate its superior performance over existing methods such as **Cayley**
 
 ---
 
+## Algorithm
+
+![Algorithm](images/algorithm.png)
+
+---
+
 ## Key Updates
 - Jan 5, 2022
       - Completed experiment setup (Adam optimizer, LR_max: 0.01, always use standardization, etc.)
