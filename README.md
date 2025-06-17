@@ -51,6 +51,8 @@ We demonstrate its superior performance over existing methods such as **Cayley**
       - For LipConvNet-n, use learning rate 0.0001 when n ≥ 30; otherwise use 0.001.
       - Added ses_new.py, a more concise version.
 
+---
+
 ## Commands
 - Important Arguments
 
