@@ -26,7 +26,9 @@ We demonstrate its superior performance over existing methods such as **Cayley**
 
 ## Algorithm
 
-![Algorithm](images/algorithm.png)
+<p align="center">
+  <img src="images/algorithm.png" width="450"/>
+</p>
 
 ---
 
