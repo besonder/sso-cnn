@@ -1,4 +1,4 @@
-# Dispering CNN
+# Spherical Semi-Orthogonal CNN
 
 ## Key Updates
 - Jan 5, 2022
