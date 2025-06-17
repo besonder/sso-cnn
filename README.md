@@ -1,35 +1,34 @@
 # Dispering CNN
 
-## 주요 변경 사항
-- 01.05
-    - 실험세팅 완료(Adam, LR_max: 0.01, Standardization 항상 사용 등)
-    - conv만 argument 입력시, 해당되는 linear ftn 자동 사용.
-    - SESLinear bug fix.
-    - PlainConv : LipConvNet 제외 모두 적용 가능
-    - cifar100 사용 가능. `--dataset cifar100` 으로 이용.
-    - `SES` 방법의 경우 `--lam` (default: 1.7) 추가 arg 사용 가능.
-    - `LipConvNet` 의 경우 `--n_lip` (default: 1) 추가 arg 사용 가능. (1 -> LipConvNet-5에 해당.)
-- 01.06
-  - SES-T 방법 update. 모든 backbone에 사용가능.
-  - SESConv2dFT 사용시 `--linear` 미설정시 자동으로 `SESLinaerT` 사용.
-- 01.12
-  - Update SES. ses_t.py -> ses.py
-  - `--scale` 추가. `SESLinear` 안에서 scale을 곱하는 것이 아니라 extract_SESLoss 에서 scale 곱하도록 수정.
-  - PlainConv LipConvNet에서 사용가능.
-- 01.14
-  - Hyper Param Tunning. `python hyperparam_ray_tune.py`
-  - main_for_tune.py 추가.
-  - Default Loss: Margin -> CE.
-- 01.16
-  - Gradien Clipping 제거.
-  - `--lam 2.0`, `--scale 2.0` 이 최적. Default 설정.
-- 01.25
-  - `--lam 10.0`, `--scale 2.0` 이 최적. Default 설정.
-  - LipConvNet-n에서 n >=30 -> lr 0.0001. 그외 경우에는 lr 0.001.
-  - `ses_new.py` 추가. 더 간결하게.
-  
-## 명령어
-- 중요 arguments
+## Key Updates
+- Jan 5, 2022
+      - Completed experiment setup (Adam optimizer, LR_max: 0.01, always use standardization, etc.)
+      - When only --conv is specified, the corresponding default linear function is automatically selected.
+      - Fixed bug in SESLinear.
+      - PlainConv can be used with all backbones except LipConvNet.
+      - Added support for CIFAR-100. Use --dataset cifar100.
+      - For the SES method, an additional argument --lam (default: 1.7) is available.
+      - For LipConvNet, use --n_lip (default: 1), which corresponds to LipConvNet-5 when set to 1.
+- Jan 6, 2022
+      - Updated SES-T method. Now compatible with all backbones.
+      - When using SESConv2dFT, if --linear is not specified, SESLinearT is used by default.
+- Jan 21, 2022
+      - Updated SES implementation. Renamed ses_t.py to ses.py.
+      - Added --scale argument. Scaling is now applied in extract_SESLoss instead of inside SESLinear.
+- Jan 14, 2022
+      - Added hyperparameter tuning using python hyperparam_ray_tune.py.
+      - Introduced main_for_tune.py.
+      - Changed default loss from Margin Loss to Cross Entropy (CE).
+- Jan 16, 2022
+      - Removed gradient clipping.
+      - Updated defaults: --lam 2.0, --scale 2.0.
+- Jan 20, 2022
+      - Updated optimal defaults to --lam 10.0, --scale 2.0.
+      - For LipConvNet-n, use learning rate 0.0001 when n ≥ 30; otherwise use 0.001.
+      - Added ses_new.py, a more concise version.
+
+## Commands
+- Important Arguments
 
 ```sh
 ## Baseline
@@ -45,21 +44,21 @@ python main.py --gpu 0 --exp_name Exp --conv SESConv --linear CayleyLinear --lam
 
 ```
 
-- `--linear` 옵션 미 설정시(default: 'none'), 해당 conv에 맞는 미리 정의된 linear가 사용됨.
+- If `--linear` is not explicitly set (default: 'none'), the predefined linear layer corresponding to the given conv is used automatically
 
 'PlainConv'    : 'Linear',         
 'BCOP' : 'BCOP', 'SOC' : 'SOC', 'ECO': 'ECO',
 'CayleyConv'   : 'CayleyLinear',
 'SESConv'      : 'SESLinear', 'SESConv1x1'    : 'SESLinear', 
 
-- argment 관련해서는 utils/option.py 참조
+- For argument details, refer to utils/option.py.
 
 ---
 ## Tensorboard
-실험 결과는 exps/EXP_NAME 에 저장. tensorboard 결과도 같이 저장.
+Experiment results are stored under exps/EXP_NAME, including TensorBoard logs.
 
 ```sh
-# tensorboard 실행
+# Launch tensorboard
 tensorboard --logdir exps --host 0.0.0.0 --port 6006
 ```
 
@@ -67,4 +66,4 @@ tensorboard --logdir exps --host 0.0.0.0 --port 6006
 ---
 
 ## Precaution & TODO List
-- Conv들의 Kernel size는 default 1.
+- The kernel size for all conv layers is 1 by default.
