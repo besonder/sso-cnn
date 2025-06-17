@@ -1,7 +1,7 @@
 # Spherical Semi-Orthogonal Convolution
 
 > A PyTorch-based implementation of **Spherical Semi-Orthogonal (SSO) Convolutional Layers**, designed for robustness and redundancy reduction in deep neural networks.  
-> This work is based on our ICML submission, which introduces a novel transformation inspired by geometric principles in the real projective space.
+> This work introduces a novel transformation inspired by geometric principles in the real projective space.
 
 ---
 
